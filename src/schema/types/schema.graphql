@@ -1,0 +1,69 @@
+extend type Query {
+  """
+  Fetch a paginated list of all groups
+  """
+  groups(first: Int = 10, after: Int = 0): GroupConnection
+
+  """
+  Fetch a paginated list of all group memberships
+  """
+  groupMemberships(first: Int = 10, after: Int = 0): GroupMembershipConnection
+}
+
+"""
+PageInfo type provides pagination helpers
+"""
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+}
+
+type GroupEdge {
+  group: Group!
+}
+
+type GroupConnection {
+  pageInfo: PageInfo
+  edges: [GroupEdge!]
+}
+
+type GroupMembershipEdge {
+  groupMembership: GroupMembership!
+}
+
+type GroupMembershipConnection {
+  pageInfo: PageInfo
+  edges: [GroupMembershipEdge!]
+}
+
+extend type User @key(fields: "id") {
+  id: ID! @external
+  name: String @external
+  username: String @external
+  memberships: GroupMembershipConnection
+}
+
+type Group @key(fields: "id") {
+  id: ID!
+  name: String
+  memberships: GroupMembershipConnection
+}
+
+type GroupMembership @key(fields: "id") {
+  id: ID!
+  group: Group!
+  member: User!
+  status: MembershipStatus
+  type: MembershipType
+}
+
+enum MembershipStatus {
+  APPROVED
+  DENIED
+  PENDING
+}
+
+enum MembershipType {
+  MEMBER
+  OWNER
+}
