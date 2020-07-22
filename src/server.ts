@@ -12,9 +12,22 @@ const server = new ApolloServer({
       resolvers
     }
   ]),
+  engine: {
+    graphVariant: "current"
+  },
   context: createContext
 });
 
-server.listen({ port: 4001 }).then(({ url }) => {
+server.listen({ port: 4002 }).then(({ url }) => {
   console.log(`🚀 Server ready at ${url}`)
 })
+
+/**
+apollo service:push \
+--localSchemaFile=./src/schema/types/schema.graphql \
+--key=service:monest:2HOiPg_5jSKO7BMhNsLksA \
+--graph=monest \
+--serviceName=groups
+--serviceURL=http://localhost:4002/
+
+*/
