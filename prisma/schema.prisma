@@ -8,30 +8,32 @@ datasource db {
 }
 
 model Group {
-  createdAt   DateTime          @default(now())
-  id          Int               @default(autoincrement()) @id
-  name        String
-  memberships GroupMembership[]
+  id        Int               @default(autoincrement()) @id
+  name      String
+  createdAt DateTime          @default(now())
+  members   GroupMembership[]
 }
 
 model GroupMembership {
-  groupId  Int
-  id       Int               @default(autoincrement()) @id
+  id       Int              @default(autoincrement()) @id
   memberId Int
-  status   membership_status @default(PENDING)
-  type     membership_type   @default(MEMBER)
-  group    Group             @relation(fields: [groupId], references: [id])
+  groupId  Int
+  active   Boolean          @default(false)
+  role     MembershipRole   @default(MEMBER)
+  status   MembershipStatus @default(PENDING)
+  group    Group            @relation(fields: [groupId], references: [id])
 
   @@unique([memberId, groupId], name: "GroupMembership_memberId_groupId_key")
 }
 
-enum membership_status {
+enum MembershipRole {
+  ADMIN
+  MEMBER
+  TRADER
+}
+
+enum MembershipStatus {
   APPROVED
   DENIED
   PENDING
-}
-
-enum membership_type {
-  MEMBER
-  OWNER
 }
