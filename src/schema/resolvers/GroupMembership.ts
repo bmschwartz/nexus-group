@@ -1,5 +1,4 @@
 import { Context } from "../../context";
-import { GroupMembership } from "@prisma/client";
 
 export const GroupMembershipQuery = {
 
@@ -13,7 +12,7 @@ export const GroupMembershipQuery = {
   async groupMembers(parent: any, args: any, ctx: Context) {
     const { groupId } = args
     return await ctx.prisma.groupMembership.findMany({
-      where: { groupId }
+      where: { groupId: Number(groupId) }
     })
   },
 }
@@ -21,7 +20,14 @@ export const GroupMembershipQuery = {
 export const GroupMembershipMutations = {
 
   async createMembership(parent: any, args: any, ctx: Context) {
-    const { input: { groupId, memberId, role, status } } = args
+    let { input: { groupId, memberId, role, status } } = args
+    groupId = Number(groupId)
+    memberId = Number(memberId)
+
+    const group = await ctx.prisma.group.findOne({ where: { id: groupId } })
+    if (!group) {
+      throw new Error("That group does not exist!")
+    }
 
     const membership = await ctx.prisma.groupMembership.findOne({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }

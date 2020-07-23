@@ -1,4 +1,4 @@
-import { ApolloServer, gql } from "apollo-server"
+import { ApolloServer } from "apollo-server"
 import { buildFederatedSchema } from "@apollo/federation"
 
 import { typeDefs } from './schema/types'

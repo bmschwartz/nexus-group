@@ -16,7 +16,7 @@ export const GroupQuery = {
     })
   },
   async group(parent: any, args: any, ctx: Context) {
-    return ctx.prisma.group.findOne({ where: { id: args.groupId } })
+    return ctx.prisma.group.findOne({ where: { id: Number(args.groupId) } })
   },
   async groupExists(parent: any, args: any, ctx: Context) {
     const groupCount = await ctx.prisma.group.count({ where: { name: args.name } })
@@ -41,6 +41,7 @@ export const GroupMutations = {
         active: true,
         members: {
           create: {
+            active: true,
             memberId: Number(ownerId),
             status: "APPROVED",
             role: "ADMIN"
@@ -70,13 +71,13 @@ export const GroupMutations = {
 export const GroupResolvers = {
   async __resolveReference(group: any, args: any, ctx: Context) {
     console.log(`group id: ${group.id}`)
-    return ctx.prisma.group.findOne({ where: { id: group.id } })
+    return ctx.prisma.group.findOne({ where: { id: Number(group.id) } })
   },
 
-  async members(group: any, args: any, ctx: Context) {
+  async memberships(group: any, args: any, ctx: Context) {
     return ctx.prisma.groupMembership.findMany({
       where: {
-        groupId: group.id
+        groupId: Number(group.id)
       }
     })
   }
