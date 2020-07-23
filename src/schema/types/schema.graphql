@@ -1,23 +1,26 @@
 extend type Query {
+  # Group
   allGroups: [Group!]!
-  myAdminGroups: [Group!]
-  group(groupId: ID!): Group
-  groupExists(name: String!): Boolean!
+  group(input: GroupInput!): Group
+  groupExists(input: GroupExistsInput!): Boolean!
 
-  myGroupMemberships: [GroupMembership!]
-  groupMembers(groupId: ID!): [GroupMembership!]
+  # GroupMembership
+  myGroupMemberships(input: MyGroupMembershipsInput): [GroupMembership!]
+  groupMembers(input: GroupMembersInput!): [GroupMembership!]
 }
 
 extend type Mutation {
+  # Group
   createGroup(input: CreateGroupInput!): Group
   updateGroup(input: UpdateGroupInput!): Group
-  disableGroup(groupId: ID!): Group
+  disableGroup(input: DisableGroupInput!): Group
 
+  # GroupMembership
   createMembership(input: CreateGroupMembershipInput!): GroupMembership
   updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
   updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
   updateMembershipActive(input: UpdateMembershipActiveInput!): GroupMembership
-  deleteMembership(membershipId: ID!): GroupMembership
+  deleteMembership(input: DeleteMembershipInput!): GroupMembership
 }
 
 ########################
@@ -46,6 +49,18 @@ input CreateGroupInput {
 input UpdateGroupInput {
   groupId: ID!
   name: String!
+}
+
+input GroupInput {
+  groupId: ID!
+}
+
+input GroupExistsInput {
+  name: String!
+}
+
+input DisableGroupInput {
+  groupId: ID!
 }
 
 ########################
@@ -92,4 +107,17 @@ input UpdateMembershipRoleInput {
 input UpdateMembershipActiveInput {
   membershipId: ID!
   active: Boolean!
+}
+
+input MyGroupMembershipsInput {
+  role: MembershipRole
+  status: MembershipStatus
+}
+
+input GroupMembersInput {
+  groupId: ID!
+}
+
+input DeleteMembershipInput {
+  membershipId: ID!
 }

@@ -1,17 +1,27 @@
 import { Context } from "../../context";
+import { GroupMembershipWhereInput } from "@prisma/client";
 
 export const GroupMembershipQuery = {
 
   async myGroupMemberships(parent: any, args: any, ctx: Context) {
     const memberId = 1 // todo: change this to "my id"
-    return await ctx.prisma.groupMembership.findMany({
-      where: { memberId }
-    })
+    const { input: { role, status } } = args
+
+    const where: GroupMembershipWhereInput = { memberId }
+
+    if (role) {
+      where.role = role
+    }
+    if (status) {
+      where.status = status
+    }
+
+    return ctx.prisma.groupMembership.findMany({ where })
   },
 
   async groupMembers(parent: any, args: any, ctx: Context) {
-    const { groupId } = args
-    return await ctx.prisma.groupMembership.findMany({
+    const { input: { groupId } } = args
+    return ctx.prisma.groupMembership.findMany({
       where: { groupId: Number(groupId) }
     })
   },
@@ -49,41 +59,41 @@ export const GroupMembershipMutations = {
   },
 
   async updateMembershipRole(parent: any, args: any, ctx: Context) {
-    const { input: { membershipId: id, role } } = args
+    const { input: { membershipId, role } } = args
     return ctx.prisma.groupMembership.update({
-      where: { id },
+      where: { id: Number(membershipId) },
       data: { role }
     })
   },
 
   async updateMembershipStatus(parent: any, args: any, ctx: Context) {
-    const { input: { membershipId: id, status } } = args
+    const { input: { membershipId, status } } = args
     return ctx.prisma.groupMembership.update({
-      where: { id },
+      where: { id: Number(membershipId) },
       data: { status }
     })
   },
 
   async updateMembershipActive(parent: any, args: any, ctx: Context) {
-    const { input: { membershipId: id, active } } = args
+    const { input: { membershipId, active } } = args
     return ctx.prisma.groupMembership.update({
-      where: { id },
+      where: { id: Number(membershipId) },
       data: { active }
     })
   },
 
   async deleteMembership(parent: any, args: any, ctx: Context) {
-    const { membershipId } = args
-    return ctx.prisma.groupMembership.delete({ where: { id: membershipId } })
+    const { input: { membershipId } } = args
+    return ctx.prisma.groupMembership.delete({ where: { id: Number(membershipId) } })
   },
 }
 
 export const GroupMembershipResolvers = {
   async __resolveReference(groupMembership: any, ctx: Context) {
-    return await ctx.prisma.groupMembership.findOne({ where: { id: Number(groupMembership.id) } })
+    return ctx.prisma.groupMembership.findOne({ where: { id: Number(groupMembership.id) } })
   },
   async group(membership: any, args: any, ctx: Context) {
-    return await ctx.prisma.group.findOne({ where: { id: membership.groupId } })
+    return ctx.prisma.group.findOne({ where: { id: membership.groupId } })
   },
   async member(membership: any, args: any, ctx: Context) {
     return {

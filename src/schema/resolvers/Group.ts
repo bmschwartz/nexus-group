@@ -4,22 +4,14 @@ export const GroupQuery = {
   async allGroups(parent: any, args: any, ctx: Context) {
     return ctx.prisma.group.findMany()
   },
-  async myAdminGroups(parent: any, args: any, ctx: Context) {
-    const adminMemberships = await ctx.prisma.groupMembership.findMany({
-      where: {
-        memberId: 1, // todo: Change this to "my id"
-        role: "ADMIN"
-      }
-    })
-    return ctx.prisma.group.findMany({
-      where: { id: { in: adminMemberships.map(m => m.groupId) } }
-    })
-  },
+
   async group(parent: any, args: any, ctx: Context) {
-    return ctx.prisma.group.findOne({ where: { id: Number(args.groupId) } })
+    const { input: { groupId } } = args
+    return ctx.prisma.group.findOne({ where: { id: Number(groupId) } })
   },
   async groupExists(parent: any, args: any, ctx: Context) {
-    const groupCount = await ctx.prisma.group.count({ where: { name: args.name } })
+    const { input: { name } } = args
+    const groupCount = await ctx.prisma.group.count({ where: { name } })
     return groupCount > 0
   }
 }
