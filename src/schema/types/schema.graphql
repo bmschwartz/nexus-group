@@ -1,22 +1,23 @@
 extend type Query {
   allGroups: [Group!]!
-  ownedGroups: [Group!]!
+  myAdminGroups: [Group!]
   group(groupId: ID!): Group
-  groupAdmins(groupId: ID!): [GroupMembership!]
-  groupTraders(groupId: ID!): [GroupMembership!]
+  groupExists(name: String!): Boolean!
+
+  myGroupMemberships: [GroupMembership!]
   groupMembers(groupId: ID!): [GroupMembership!]
 }
 
 extend type Mutation {
-  createGroup(data: CreateGroupInput!): Group
-  updateGroup(data: UpdateGroupInput!): Group
-  deleteGroup(groupId: ID!): Boolean
+  createGroup(input: CreateGroupInput!): Group
+  updateGroup(input: UpdateGroupInput!): Group
+  disableGroup(groupId: ID!): Group
 
-  createMembership(data: CreateGroupMembershipInput!): GroupMembership
-  updateMembershipRole(data: UpdateMembershipRoleInput!): GroupMembership
-  updateMembershipStatus(data: UpdateMembershipStatusInput!): GroupMembership
-  updateMembershipActive(data: UpdateMembershipActiveInput!): GroupMembership
-  deleteMembership(membershipId: ID!): Boolean
+  createMembership(input: CreateGroupMembershipInput!): GroupMembership
+  updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
+  updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
+  updateMembershipActive(input: UpdateMembershipActiveInput!): GroupMembership
+  deleteMembership(membershipId: ID!): GroupMembership
 }
 
 ########################
@@ -33,7 +34,8 @@ extend type User @key(fields: "id") {
 type Group @key(fields: "id") {
   id: ID!
   name: String!
-  memberships: [GroupMembership!]!
+  active: Boolean!
+  members: [GroupMembership!]!
 }
 
 input CreateGroupInput {
@@ -42,6 +44,7 @@ input CreateGroupInput {
 }
 
 input UpdateGroupInput {
+  groupId: ID!
   name: String!
 }
 

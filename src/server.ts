@@ -21,13 +21,3 @@ const server = new ApolloServer({
 server.listen({ port: 4002 }).then(({ url }) => {
   console.log(`🚀 Server ready at ${url}`)
 })
-
-/**
-apollo service:push \
---localSchemaFile=./src/schema/types/schema.graphql \
---key=service:monest:2HOiPg_5jSKO7BMhNsLksA \
---graph=monest \
---serviceName=groups
---serviceURL=http://localhost:4002/
-
-*/

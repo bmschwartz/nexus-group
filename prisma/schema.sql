@@ -17,3 +17,9 @@ CREATE TABLE "public"."GroupMembership" (
   FOREIGN KEY ("groupId") REFERENCES "public"."Group"(id),
   UNIQUE("memberId", "groupId")
 );
+
+ALTER TABLE "public"."Group"
+  ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE "public"."Group"
+  ADD CONSTRAINT unique_name UNIQUE("name");

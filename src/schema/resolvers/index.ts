@@ -4,7 +4,7 @@ import { UserResolvers } from "./User";
 import { Query } from "./Query";
 import { Mutation } from "./Mutation";
 
-export const resolvers = {
+export const resolvers: any = {
   Query,
   Mutation,
   Group: GroupResolvers,
