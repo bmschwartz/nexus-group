@@ -51,16 +51,16 @@ input UpdateGroupInput {
   name: String!
 }
 
+input DisableGroupInput {
+  groupId: ID!
+}
+
 input GroupInput {
   groupId: ID!
 }
 
 input GroupExistsInput {
   name: String!
-}
-
-input DisableGroupInput {
-  groupId: ID!
 }
 
 ########################
@@ -87,15 +87,19 @@ enum MembershipRole {
   ADMIN
 }
 
+input MyGroupMembershipsInput {
+  role: MembershipRole
+  status: MembershipStatus
+}
+
+input GroupMembersInput {
+  groupId: ID!
+}
+
 input CreateGroupMembershipInput {
   groupId: ID!
   memberId: ID!
   role: MembershipRole!
-  status: MembershipStatus!
-}
-
-input UpdateMembershipStatusInput {
-  membershipId: ID!
   status: MembershipStatus!
 }
 
@@ -104,18 +108,14 @@ input UpdateMembershipRoleInput {
   role: MembershipRole!
 }
 
+input UpdateMembershipStatusInput {
+  membershipId: ID!
+  status: MembershipStatus!
+}
+
 input UpdateMembershipActiveInput {
   membershipId: ID!
   active: Boolean!
-}
-
-input MyGroupMembershipsInput {
-  role: MembershipRole
-  status: MembershipStatus
-}
-
-input GroupMembersInput {
-  groupId: ID!
 }
 
 input DeleteMembershipInput {

@@ -62,7 +62,6 @@ export const GroupMutations = {
 
 export const GroupResolvers = {
   async __resolveReference(group: any, args: any, ctx: Context) {
-    console.log(`group id: ${group.id}`)
     return ctx.prisma.group.findOne({ where: { id: Number(group.id) } })
   },
 
