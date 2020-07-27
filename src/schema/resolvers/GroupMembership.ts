@@ -3,7 +3,7 @@ import { GroupMembershipWhereInput } from "@prisma/client";
 
 export const GroupMembershipQuery = {
 
-  async myGroupMemberships(parent: any, args: any, ctx: Context) {
+  async myMemberships(parent: any, args: any, ctx: Context) {
     const memberId = 1 // todo: change this to "my id"
     const { input: { role, status } } = args
 

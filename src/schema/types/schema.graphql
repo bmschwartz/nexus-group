@@ -5,7 +5,7 @@ extend type Query {
   groupExists(input: GroupExistsInput!): Boolean!
 
   # GroupMembership
-  myGroupMemberships(input: MyGroupMembershipsInput): [GroupMembership!]
+  myMemberships(input: MyMembershipsInput): [GroupMembership!]
   groupMembers(input: GroupMembersInput!): [GroupMembership!]
 }
 
@@ -87,7 +87,7 @@ enum MembershipRole {
   ADMIN
 }
 
-input MyGroupMembershipsInput {
+input MyMembershipsInput {
   role: MembershipRole
   status: MembershipStatus
 }
