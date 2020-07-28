@@ -87,8 +87,8 @@ enum MembershipRole {
 }
 
 input MyMembershipsInput {
-  role: MembershipRole
-  status: MembershipStatus
+  roles: [MembershipRole!]
+  statuses: [MembershipStatus!]
 }
 
 input GroupMembersInput {

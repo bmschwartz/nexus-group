@@ -4,16 +4,16 @@ import { GroupMembershipWhereInput } from "@prisma/client";
 export const GroupMembershipQuery = {
 
   async myMemberships(parent: any, args: any, ctx: Context) {
-    const memberId = 1 // todo: change this to "my id"
-    const { input: { role, status } } = args
+    const { input: { roles, statuses } } = args
 
-    const where: GroupMembershipWhereInput = { memberId }
+    const where: GroupMembershipWhereInput = { memberId: ctx.userId }
 
-    if (role) {
-      where.role = role
+    if (roles) {
+      where.role = { in: roles }
     }
-    if (status) {
-      where.status = status
+
+    if (statuses) {
+      where.status = { in: statuses }
     }
 
     return ctx.prisma.groupMembership.findMany({ where })
