@@ -1,8 +1,14 @@
 import { Context } from "../../context";
+import { PrismaClient } from "@prisma/client";
 
-const NAME_VALIDATION = {
+const GROUP_NAME_VALIDATION = {
   minLength: 1,
   maxLength: 30,
+}
+
+const GROUP_DESCRIPTION_VALIDATION = {
+  minLength: 0,
+  maxLength: 5000
 }
 
 export const GroupQuery = {
@@ -24,10 +30,14 @@ export const GroupQuery = {
 export const GroupMutations = {
 
   async createGroup(parent: any, args: any, ctx: Context) {
-    const { input: { name } } = args
+    const { input: { name, description } } = args
 
-    if (name.length < NAME_VALIDATION.minLength || name.length > NAME_VALIDATION.maxLength) {
-      throw new Error(`Name must be between ${NAME_VALIDATION.minLength} and ${NAME_VALIDATION.maxLength} characters long`)
+    if (name.length < GROUP_NAME_VALIDATION.minLength || name.length > GROUP_NAME_VALIDATION.maxLength) {
+      throw new Error(`Name must be between ${GROUP_NAME_VALIDATION.minLength} and ${GROUP_NAME_VALIDATION.maxLength} characters long`)
+    }
+
+    if (description.length < GROUP_DESCRIPTION_VALIDATION.minLength || description.length > GROUP_DESCRIPTION_VALIDATION.maxLength) {
+      throw new Error(`Description is at most ${GROUP_DESCRIPTION_VALIDATION.maxLength} characters long`)
     }
 
     const group = await ctx.prisma.group.findOne({ where: { name } })
@@ -39,6 +49,7 @@ export const GroupMutations = {
     return ctx.prisma.group.create({
       data: {
         name,
+        description,
         active: true,
         members: {
           create: {
@@ -52,13 +63,36 @@ export const GroupMutations = {
     })
   },
 
-  async updateGroup(parent: any, args: any, ctx: Context) {
-    const { input: { groupId: id, name } } = args
+  async renameGroup(parent: any, args: any, ctx: Context) {
+    let { input: { groupId, name: newName } } = args
+    groupId = Number(groupId)
+
+    await validateActiveUserHasOneOfRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateGroupExists(ctx.prisma, groupId)
+
+    validateName(newName)
+
     return ctx.prisma.group.update({
-      where: { id },
-      data: { name }
+      where: { id: groupId },
+      data: { name: newName }
     })
   },
+
+  async updateGroupDescription(parent: any, args: any, ctx: Context) {
+    let { input: { groupId, description } } = args
+    groupId = Number(groupId)
+
+    await validateActiveUserHasOneOfRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateGroupExists(ctx.prisma, groupId)
+
+    validateGroupDescription(description)
+
+    return ctx.prisma.group.update({
+      where: { id: groupId },
+      data: { description }
+    })
+  },
+
 
   async disableGroup(parent: any, args: any, ctx: Context) {
     const { groupId } = args
@@ -80,5 +114,45 @@ export const GroupResolvers = {
         groupId: Number(group.id)
       }
     })
+  }
+}
+
+const validateGroupExists = async (prisma: PrismaClient, groupId: any) => {
+  const group = await prisma.group.findOne({ where: { id: groupId } })
+  if (!group) {
+    throw new Error("That group does not exist")
+  }
+}
+
+const validateActiveUserHasOneOfRoleAndStatus = async (prisma: PrismaClient, memberId: any, groupId: any, roles: string[] | string, statuses: string[] | string) => {
+  const userMembership = await prisma.groupMembership.findOne({
+    where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }
+  })
+
+  if (!userMembership) {
+    throw new Error("User is not a member of that group")
+  }
+
+  if (typeof roles === 'string') {
+    roles = [roles]
+  }
+  if (typeof statuses === 'string') {
+    statuses = [statuses]
+  }
+
+  const authorized = userMembership.active && roles.includes(userMembership.role) && statuses.includes(userMembership.status)
+  if (!authorized) {
+    throw new Error("Not Authorized")
+  }
+}
+
+const validateGroupDescription = (description: string) => {
+  if (description.length < GROUP_NAME_VALIDATION.minLength || description.length > GROUP_NAME_VALIDATION.maxLength) {
+    throw new Error(`Description can be at most ${GROUP_NAME_VALIDATION.maxLength} characters long`)
+  }
+}
+const validateName = (name: string) => {
+  if (name.length < GROUP_NAME_VALIDATION.minLength || name.length > GROUP_NAME_VALIDATION.maxLength) {
+    throw new Error(`Name must be between ${GROUP_NAME_VALIDATION.minLength} and ${GROUP_NAME_VALIDATION.maxLength} characters long`)
   }
 }

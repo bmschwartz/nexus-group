@@ -12,7 +12,8 @@ extend type Query {
 extend type Mutation {
   # Group
   createGroup(input: CreateGroupInput!): Group
-  updateGroup(input: UpdateGroupInput!): Group
+  renameGroup(input: RenameGroupInput!): Group
+  updateGroupDescription(input: UpdateGroupDescriptionInput!): Group
   disableGroup(input: DisableGroupInput!): Group
 
   # GroupMembership
@@ -47,9 +48,13 @@ input CreateGroupInput {
   description: String!
 }
 
-input UpdateGroupInput {
+input RenameGroupInput {
   groupId: ID!
   name: String!
+}
+
+input UpdateGroupDescriptionInput {
+  groupId: ID!
   description: String!
 }
 
