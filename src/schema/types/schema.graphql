@@ -43,7 +43,6 @@ type Group @key(fields: "id") {
 
 input CreateGroupInput {
   name: String!
-  ownerId: ID!
 }
 
 input UpdateGroupInput {

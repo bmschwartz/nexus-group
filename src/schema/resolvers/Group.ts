@@ -1,5 +1,10 @@
 import { Context } from "../../context";
 
+const NAME_VALIDATION = {
+  minLength: 1,
+  maxLength: 30,
+}
+
 export const GroupQuery = {
   async allGroups(parent: any, args: any, ctx: Context) {
     return ctx.prisma.group.findMany()
@@ -19,7 +24,11 @@ export const GroupQuery = {
 export const GroupMutations = {
 
   async createGroup(parent: any, args: any, ctx: Context) {
-    const { input: { name, ownerId } } = args
+    const { input: { name } } = args
+
+    if (name.length < NAME_VALIDATION.minLength || name.length > NAME_VALIDATION.maxLength) {
+      throw new Error(`Name must be between ${NAME_VALIDATION.minLength} and ${NAME_VALIDATION.maxLength} characters long`)
+    }
 
     const group = await ctx.prisma.group.findOne({ where: { name } })
 
@@ -34,7 +43,7 @@ export const GroupMutations = {
         members: {
           create: {
             active: true,
-            memberId: Number(ownerId),
+            memberId: ctx.userId!,
             status: "APPROVED",
             role: "ADMIN"
           }

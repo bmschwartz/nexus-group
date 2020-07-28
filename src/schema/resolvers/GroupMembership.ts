@@ -92,12 +92,15 @@ export const GroupMembershipResolvers = {
   async __resolveReference(groupMembership: any, ctx: Context) {
     return ctx.prisma.groupMembership.findOne({ where: { id: Number(groupMembership.id) } })
   },
+
   async group(membership: any, args: any, ctx: Context) {
     return ctx.prisma.group.findOne({ where: { id: membership.groupId } })
   },
+
   async member(membership: any, args: any, ctx: Context) {
     return {
       id: membership.memberId
     }
-  }
+  },
+
 }
