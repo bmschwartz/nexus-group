@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Group {
-  id        Int               @default(autoincrement()) @id
-  name      String            @unique
-  createdAt DateTime          @default(now())
-  active    Boolean           @default(true)
-  members   GroupMembership[]
+  id          Int               @default(autoincrement()) @id
+  name        String            @unique
+  createdAt   DateTime          @default(now())
+  active      Boolean           @default(true)
+  description String
+  members     GroupMembership[]
 }
 
 model GroupMembership {

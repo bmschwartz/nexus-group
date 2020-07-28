@@ -26,3 +26,9 @@ ALTER TABLE "public"."Group"
 
 ALTER TABLE "public"."Group"
   ADD CONSTRAINT unique_name UNIQUE("name");
+
+ALTER TABLE "public"."Group"
+  ADD COLUMN "description" TEXT;
+
+ALTER TABLE "public"."Group"
+  ALTER COLUMN "description" SET NOT NULL;

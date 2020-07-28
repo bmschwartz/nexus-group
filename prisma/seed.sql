@@ -1,15 +1,15 @@
 /** Groups */
-INSERT INTO "Group" (name, active)
-VALUES ('Top Traders', TRUE);
+INSERT INTO "Group" (name, active, description)
+VALUES ('Top Traders', TRUE, 'This is a top notch group of pro traders');
 
-INSERT INTO "Group" (name, active)
-VALUES ('Binance Raiders', TRUE);
+INSERT INTO "Group" (name, active, description)
+VALUES ('Binance Raiders', TRUE, 'We dominate binance all day');
 
-INSERT INTO "Group" (name, active)
-VALUES ('Bull Traders', TRUE);
+INSERT INTO "Group" (name, active, description)
+VALUES ('Bull Traders', TRUE, 'No one tops the bulls!');
 
-INSERT INTO "Group" (name, active)
-VALUES ('Doggy Dog', FALSE);
+INSERT INTO "Group" (name, active, description)
+VALUES ('Doggy Dog', FALSE, 'Still trying to figure this stuff out');
 
 
 /** GroupMemberships */
