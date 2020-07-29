@@ -1,5 +1,6 @@
 import { Context } from "../../context";
-import { GroupMembershipWhereInput } from "@prisma/client";
+import { GroupMembershipWhereInput, PrismaClient } from "@prisma/client";
+import { validateGroupExists } from "./Group";
 
 export const GroupMembershipQuery = {
 
@@ -21,6 +22,8 @@ export const GroupMembershipQuery = {
 
   async groupMembers(parent: any, args: any, ctx: Context) {
     const { input: { groupId } } = args
+
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, ["ADMIN", "TRADER"], "APPROVED")
     return ctx.prisma.groupMembership.findMany({
       where: { groupId: Number(groupId) }
     })
@@ -34,10 +37,8 @@ export const GroupMembershipMutations = {
     groupId = Number(groupId)
     memberId = Number(memberId)
 
-    const group = await ctx.prisma.group.findOne({ where: { id: groupId } })
-    if (!group) {
-      throw new Error("That group does not exist!")
-    }
+    await validateGroupExists(ctx.prisma, groupId)
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
 
     const membership = await ctx.prisma.groupMembership.findOne({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }
@@ -60,6 +61,12 @@ export const GroupMembershipMutations = {
 
   async updateMembershipRole(parent: any, args: any, ctx: Context) {
     const { input: { membershipId, role } } = args
+
+    const membership = await validateMembershipExists(ctx.prisma, membershipId)
+
+    await validateGroupExists(ctx.prisma, membership.groupId)
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
       data: { role }
@@ -68,6 +75,12 @@ export const GroupMembershipMutations = {
 
   async updateMembershipStatus(parent: any, args: any, ctx: Context) {
     const { input: { membershipId, status } } = args
+
+    const membership = await validateMembershipExists(ctx.prisma, membershipId)
+
+    await validateGroupExists(ctx.prisma, membership.groupId)
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
       data: { status }
@@ -76,6 +89,12 @@ export const GroupMembershipMutations = {
 
   async updateMembershipActive(parent: any, args: any, ctx: Context) {
     const { input: { membershipId, active } } = args
+
+    const membership = await validateMembershipExists(ctx.prisma, membershipId)
+
+    await validateGroupExists(ctx.prisma, membership.groupId)
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
       data: { active }
@@ -84,6 +103,12 @@ export const GroupMembershipMutations = {
 
   async deleteMembership(parent: any, args: any, ctx: Context) {
     const { input: { membershipId } } = args
+
+    const membership = await validateMembershipExists(ctx.prisma, membershipId)
+
+    await validateGroupExists(ctx.prisma, membership.groupId)
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+
     return ctx.prisma.groupMembership.delete({ where: { id: Number(membershipId) } })
   },
 }
@@ -103,4 +128,43 @@ export const GroupMembershipResolvers = {
     }
   },
 
+}
+
+export const validateMembershipExists = async (prisma: PrismaClient, membershipId: string | number) => {
+  const membership = await prisma.groupMembership.findOne({ where: { id: Number(membershipId) } })
+  if (!membership) {
+    throw new Error("Membership does not exist")
+  }
+  return membership
+}
+
+export const validateActiveUserHasRoleAndStatus = async (prisma: PrismaClient, memberId: any, groupId: any, roles: string[] | string | undefined, statuses: string[] | string | undefined) => {
+  const userMembership = await prisma.groupMembership.findOne({
+    where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }
+  })
+
+  if (!userMembership) {
+    throw new Error("User is not a member of that group")
+  }
+
+  if (typeof roles === 'string') {
+    roles = [roles]
+  }
+  if (typeof statuses === 'string') {
+    statuses = [statuses]
+  }
+
+  let authorized = userMembership.active
+  if (authorized && roles) {
+    authorized = authorized && roles.includes(userMembership.role)
+  }
+  if (authorized && statuses) {
+    authorized = authorized && statuses.includes(userMembership.status)
+  }
+
+  if (!authorized) {
+    throw new Error("Not Authorized")
+  }
+
+  return userMembership
 }

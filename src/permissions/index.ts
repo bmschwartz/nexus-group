@@ -8,6 +8,7 @@ export const permissions = shield({
   Query: {
     // Group Queries
     allGroups: isAuthenticated,
+    group: isAuthenticated,
     groupExists: isAuthenticated,
 
     // GroupMembership Queries

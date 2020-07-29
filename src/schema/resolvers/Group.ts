@@ -1,5 +1,6 @@
 import { Context } from "../../context";
 import { PrismaClient } from "@prisma/client";
+import { validateActiveUserHasRoleAndStatus } from "./GroupMembership";
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -67,7 +68,7 @@ export const GroupMutations = {
     let { input: { groupId, name: newName } } = args
     groupId = Number(groupId)
 
-    await validateActiveUserHasOneOfRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
     await validateGroupExists(ctx.prisma, groupId)
 
     validateName(newName)
@@ -82,7 +83,7 @@ export const GroupMutations = {
     let { input: { groupId, description } } = args
     groupId = Number(groupId)
 
-    await validateActiveUserHasOneOfRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, ["ADMIN", "TRADER"], "APPROVED")
     await validateGroupExists(ctx.prisma, groupId)
 
     validateGroupDescription(description)
@@ -95,7 +96,11 @@ export const GroupMutations = {
 
 
   async disableGroup(parent: any, args: any, ctx: Context) {
-    const { groupId } = args
+    const { input: { groupId } } = args
+
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateGroupExists(ctx.prisma, groupId)
+
     return ctx.prisma.group.update({
       where: { id: groupId },
       data: { active: false },
@@ -117,33 +122,12 @@ export const GroupResolvers = {
   }
 }
 
-const validateGroupExists = async (prisma: PrismaClient, groupId: any) => {
+export const validateGroupExists = async (prisma: PrismaClient, groupId: any) => {
   const group = await prisma.group.findOne({ where: { id: groupId } })
   if (!group) {
     throw new Error("That group does not exist")
   }
-}
-
-const validateActiveUserHasOneOfRoleAndStatus = async (prisma: PrismaClient, memberId: any, groupId: any, roles: string[] | string, statuses: string[] | string) => {
-  const userMembership = await prisma.groupMembership.findOne({
-    where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }
-  })
-
-  if (!userMembership) {
-    throw new Error("User is not a member of that group")
-  }
-
-  if (typeof roles === 'string') {
-    roles = [roles]
-  }
-  if (typeof statuses === 'string') {
-    statuses = [statuses]
-  }
-
-  const authorized = userMembership.active && roles.includes(userMembership.role) && statuses.includes(userMembership.status)
-  if (!authorized) {
-    throw new Error("Not Authorized")
-  }
+  return group
 }
 
 const validateGroupDescription = (description: string) => {
