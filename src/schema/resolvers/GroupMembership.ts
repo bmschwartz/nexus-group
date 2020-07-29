@@ -22,8 +22,6 @@ export const GroupMembershipQuery = {
 
   async groupMembers(parent: any, args: any, ctx: Context) {
     const { input: { groupId } } = args
-
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, ["ADMIN", "TRADER"], "APPROVED")
     return ctx.prisma.groupMembership.findMany({
       where: { groupId: Number(groupId) }
     })
@@ -32,9 +30,6 @@ export const GroupMembershipQuery = {
   async membershipRequests(parent: any, args: any, ctx: Context) {
     let { input: { groupId } } = args
     groupId = Number(groupId)
-
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
-    await validateGroupExists(ctx.prisma, groupId)
 
     return ctx.prisma.groupMembership.findMany({
       where: { active: false, status: "PENDING" }
@@ -49,15 +44,12 @@ export const GroupMembershipMutations = {
     groupId = Number(groupId)
     memberId = Number(memberId)
 
-    await validateGroupExists(ctx.prisma, groupId)
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
-
     const membership = await ctx.prisma.groupMembership.findOne({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } }
     })
 
     if (membership) {
-      throw new Error("This user already belongs to the group")
+      return new Error("This user already belongs to the group")
     }
 
     return ctx.prisma.groupMembership.create({
@@ -75,9 +67,9 @@ export const GroupMembershipMutations = {
     const { input: { membershipId, role } } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
-
-    await validateGroupExists(ctx.prisma, membership.groupId)
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+    if (membership instanceof Error) {
+      return membership
+    }
 
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
@@ -89,9 +81,9 @@ export const GroupMembershipMutations = {
     const { input: { membershipId, status } } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
-
-    await validateGroupExists(ctx.prisma, membership.groupId)
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+    if (membership instanceof Error) {
+      return membership
+    }
 
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
@@ -103,9 +95,9 @@ export const GroupMembershipMutations = {
     const { input: { membershipId, active } } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
-
-    await validateGroupExists(ctx.prisma, membership.groupId)
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+    if (membership instanceof Error) {
+      return membership
+    }
 
     return ctx.prisma.groupMembership.update({
       where: { id: Number(membershipId) },
@@ -117,9 +109,9 @@ export const GroupMembershipMutations = {
     const { input: { membershipId } } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
-
-    await validateGroupExists(ctx.prisma, membership.groupId)
-    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, membership.groupId, "ADMIN", "APPROVED")
+    if (membership instanceof Error) {
+      return membership
+    }
 
     return ctx.prisma.groupMembership.delete({ where: { id: Number(membershipId) } })
   },
@@ -135,7 +127,7 @@ export const GroupMembershipMutations = {
     })
 
     if (membership) {
-      throw new Error("User already has a membership with this group")
+      return new Error("User already has a membership with this group")
     }
 
     return ctx.prisma.groupMembership.create({
@@ -174,7 +166,7 @@ export const GroupMembershipResolvers = {
 export const validateMembershipExists = async (prisma: PrismaClient, membershipId: string | number) => {
   const membership = await prisma.groupMembership.findOne({ where: { id: Number(membershipId) } })
   if (!membership) {
-    throw new Error("Membership does not exist")
+    return new Error("Membership does not exist")
   }
   return membership
 }
@@ -185,7 +177,7 @@ export const validateActiveUserHasRoleAndStatus = async (prisma: PrismaClient, m
   })
 
   if (!userMembership) {
-    throw new Error("User is not a member of that group")
+    return new Error("User is not a member of that group")
   }
 
   if (typeof roles === 'string') {
@@ -204,8 +196,6 @@ export const validateActiveUserHasRoleAndStatus = async (prisma: PrismaClient, m
   }
 
   if (!authorized) {
-    throw new Error("Not Authorized")
+    return new Error("Not Authorized")
   }
-
-  return userMembership
 }
