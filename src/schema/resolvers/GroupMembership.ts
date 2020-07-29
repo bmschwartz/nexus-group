@@ -36,8 +36,6 @@ export const GroupMembershipQuery = {
     await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
     await validateGroupExists(ctx.prisma, groupId)
 
-    console.log("getting memberships..")
-
     return ctx.prisma.groupMembership.findMany({
       where: { active: false, status: "PENDING" }
     })
