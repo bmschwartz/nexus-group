@@ -111,6 +111,35 @@ export const GroupMembershipMutations = {
 
     return ctx.prisma.groupMembership.delete({ where: { id: Number(membershipId) } })
   },
+
+  async requestGroupAccess(parent: any, args: any, ctx: Context) {
+    let { input: { groupId } } = args
+    groupId = Number(groupId)
+
+    const userId = Number(ctx.userId)
+
+    let membership = await ctx.prisma.groupMembership.findOne({
+      where: { GroupMembership_memberId_groupId_key: { memberId: userId, groupId } }
+    })
+
+    if (membership) {
+      throw new Error("User already has a membership with this group")
+    }
+
+    return ctx.prisma.groupMembership.create({
+      data: {
+        memberId: userId,
+        active: false,
+        role: "MEMBER",
+        status: "PENDING",
+        group: {
+          connect: {
+            id: groupId
+          }
+        }
+      }
+    })
+  }
 }
 
 export const GroupMembershipResolvers = {

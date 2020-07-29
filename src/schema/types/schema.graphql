@@ -17,6 +17,7 @@ extend type Mutation {
   disableGroup(input: DisableGroupInput!): Group
 
   # GroupMembership
+  requestGroupAccess(input: RequestGroupAccessInput!): GroupMembership
   createMembership(input: CreateGroupMembershipInput!): GroupMembership
   updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
   updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
@@ -100,6 +101,10 @@ input MyMembershipsInput {
 }
 
 input GroupMembersInput {
+  groupId: ID!
+}
+
+input RequestGroupAccessInput {
   groupId: ID!
 }
 

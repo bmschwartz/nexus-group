@@ -19,8 +19,9 @@ export const permissions = shield({
     // Group Mutations
     createGroup: isAuthenticated,
     renameGroup: isAuthenticated,
-    updateGroupDescription: isAuthenticated,
     disableGroup: isAuthenticated,
+    requestGroupAccess: isAuthenticated,
+    updateGroupDescription: isAuthenticated,
 
     // GroupMembership Mutations
     createMembership: isAuthenticated,
