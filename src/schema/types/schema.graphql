@@ -7,6 +7,7 @@ extend type Query {
   # GroupMembership
   myMemberships(input: MyMembershipsInput): [GroupMembership!]
   groupMembers(input: GroupMembersInput!): [GroupMembership!]
+  membershipRequests(input: MembershipRequestsInput!): [GroupMembership!]
 }
 
 extend type Mutation {
@@ -105,6 +106,10 @@ input GroupMembersInput {
 }
 
 input RequestGroupAccessInput {
+  groupId: ID!
+}
+
+input MembershipRequestsInput {
   groupId: ID!
 }
 

@@ -28,6 +28,20 @@ export const GroupMembershipQuery = {
       where: { groupId: Number(groupId) }
     })
   },
+
+  async membershipRequests(parent: any, args: any, ctx: Context) {
+    let { input: { groupId } } = args
+    groupId = Number(groupId)
+
+    await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, groupId, "ADMIN", "APPROVED")
+    await validateGroupExists(ctx.prisma, groupId)
+
+    console.log("getting memberships..")
+
+    return ctx.prisma.groupMembership.findMany({
+      where: { active: false, status: "PENDING" }
+    })
+  },
 }
 
 export const GroupMembershipMutations = {

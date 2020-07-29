@@ -94,7 +94,6 @@ export const GroupMutations = {
     })
   },
 
-
   async disableGroup(parent: any, args: any, ctx: Context) {
     const { input: { groupId } } = args
 
