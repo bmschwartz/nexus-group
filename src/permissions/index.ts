@@ -1,6 +1,6 @@
-import { rule, shield, and, or } from "graphql-shield"
-import { Context } from "../context"
-import { validateActiveUserHasRoleAndStatus } from "../schema/resolvers/GroupMembership"
+import { rule, shield, and, or } from 'graphql-shield'
+import { Context } from '../context'
+import { validateActiveUserHasRoleAndStatus } from '../schema/resolvers/GroupMembership'
 
 const isAuthenticated = rule()((parent, args, { userId }) => {
   return !!userId
@@ -8,8 +8,16 @@ const isAuthenticated = rule()((parent, args, { userId }) => {
 
 const isGroupAdmin = rule({ cache: 'strict' })(
   async (parent, args, ctx: Context, info) => {
-    const { input: { groupId } } = args
-    const error = await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, Number(groupId), "ADMIN", "APPROVED")
+    const {
+      input: { groupId },
+    } = args
+    const error = await validateActiveUserHasRoleAndStatus(
+      ctx.prisma,
+      ctx.userId,
+      Number(groupId),
+      'ADMIN',
+      'APPROVED',
+    )
 
     return error || true
   },
@@ -17,8 +25,16 @@ const isGroupAdmin = rule({ cache: 'strict' })(
 
 const isGroupTrader = rule({ cache: 'strict' })(
   async (parent, args, ctx: Context, info) => {
-    const { input: { groupId } } = args
-    const error = await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, Number(groupId), "TRADER", "APPROVED")
+    const {
+      input: { groupId },
+    } = args
+    const error = await validateActiveUserHasRoleAndStatus(
+      ctx.prisma,
+      ctx.userId,
+      Number(groupId),
+      'TRADER',
+      'APPROVED',
+    )
 
     return error || true
   },
@@ -26,8 +42,16 @@ const isGroupTrader = rule({ cache: 'strict' })(
 
 const isGroupMember = rule({ cache: 'strict' })(
   async (parent, args, ctx: Context, info) => {
-    const { input: { groupId } } = args
-    const error = await validateActiveUserHasRoleAndStatus(ctx.prisma, ctx.userId, Number(groupId), "MEMBER", "APPROVED")
+    const {
+      input: { groupId },
+    } = args
+    const error = await validateActiveUserHasRoleAndStatus(
+      ctx.prisma,
+      ctx.userId,
+      Number(groupId),
+      'MEMBER',
+      'APPROVED',
+    )
 
     return error || true
   },
@@ -59,5 +83,5 @@ export const permissions = shield({
     updateMembershipStatus: and(isAuthenticated, isGroupAdmin),
     updateMembershipActive: and(isAuthenticated, isGroupAdmin),
     deleteMembership: and(isAuthenticated, isGroupAdmin),
-  }
+  },
 })

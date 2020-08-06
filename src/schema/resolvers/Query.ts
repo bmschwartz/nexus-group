@@ -1,5 +1,5 @@
-import { GroupQuery } from "./Group";
-import { GroupMembershipQuery } from "./GroupMembership";
+import { GroupQuery } from './Group'
+import { GroupMembershipQuery } from './GroupMembership'
 
 export const Query = {
   ...GroupQuery,
