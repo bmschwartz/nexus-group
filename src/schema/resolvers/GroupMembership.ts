@@ -45,7 +45,10 @@ export const GroupMembershipQuery = {
 export const GroupMembershipMutations = {
   async createMembership(parent: any, args: any, ctx: Context) {
     let {
-      input: { groupId, memberId, role, status },
+      input: { groupId, memberId },
+    } = args
+    const {
+      input: { role, status },
     } = args
     groupId = Number(groupId)
     memberId = Number(memberId)
@@ -140,7 +143,7 @@ export const GroupMembershipMutations = {
 
     const userId = Number(ctx.userId)
 
-    let membership = await ctx.prisma.groupMembership.findOne({
+    const membership = await ctx.prisma.groupMembership.findOne({
       where: {
         GroupMembership_memberId_groupId_key: { memberId: userId, groupId },
       },

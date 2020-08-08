@@ -1,5 +1,10 @@
 import { Context } from "../../context"
-import { PrismaClient } from "@prisma/client"
+import {
+  PrismaClient,
+  GroupMembershipCreateWithoutGroupInput,
+  MembershipStatus,
+  MembershipRole,
+} from "@prisma/client"
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -37,6 +42,10 @@ export const GroupMutations = {
       input: { name, description },
     } = args
 
+    if (!ctx.userId) {
+      return new Error("Unknown userId")
+    }
+
     validateGroupName(name)
     validateGroupDescription(description)
 
@@ -54,9 +63,9 @@ export const GroupMutations = {
         members: {
           create: {
             active: true,
-            memberId: ctx.userId!,
-            status: "APPROVED",
-            role: "ADMIN",
+            memberId: ctx.userId,
+            status: MembershipStatus.APPROVED,
+            role: MembershipRole.ADMIN,
           },
         },
       },
@@ -65,7 +74,10 @@ export const GroupMutations = {
 
   async renameGroup(parent: any, args: any, ctx: Context) {
     let {
-      input: { groupId, name: newName },
+      input: { groupId },
+    } = args
+    const {
+      input: { name: newName },
     } = args
     groupId = Number(groupId)
 
@@ -79,7 +91,10 @@ export const GroupMutations = {
 
   async updateGroupDescription(parent: any, args: any, ctx: Context) {
     let {
-      input: { groupId, description },
+      input: { groupId },
+    } = args
+    const {
+      input: { description },
     } = args
     groupId = Number(groupId)
 
