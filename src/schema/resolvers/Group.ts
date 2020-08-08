@@ -152,6 +152,7 @@ const validateGroupDescription = (description: string) => {
       `Description can be at most ${GROUP_NAME_VALIDATION.maxLength} characters long`,
     )
   }
+  return null
 }
 const validateGroupName = (name: string) => {
   if (
@@ -162,4 +163,5 @@ const validateGroupName = (name: string) => {
       `Name must be between ${GROUP_NAME_VALIDATION.minLength} and ${GROUP_NAME_VALIDATION.maxLength} characters long`,
     )
   }
+  return null
 }
