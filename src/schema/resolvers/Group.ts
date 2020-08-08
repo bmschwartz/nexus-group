@@ -1,5 +1,5 @@
-import { Context } from '../../context'
-import { PrismaClient } from '@prisma/client'
+import { Context } from "../../context"
+import { PrismaClient } from "@prisma/client"
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -43,7 +43,7 @@ export const GroupMutations = {
     const group = await ctx.prisma.group.findOne({ where: { name } })
 
     if (group) {
-      return new Error('A group by that name already exists')
+      return new Error("A group by that name already exists")
     }
 
     return ctx.prisma.group.create({
@@ -55,8 +55,8 @@ export const GroupMutations = {
           create: {
             active: true,
             memberId: ctx.userId!,
-            status: 'APPROVED',
-            role: 'ADMIN',
+            status: "APPROVED",
+            role: "ADMIN",
           },
         },
       },
@@ -123,7 +123,7 @@ export const validateGroupExists = async (
 ) => {
   const group = await prisma.group.findOne({ where: { id: groupId } })
   if (!group) {
-    return new Error('That group does not exist')
+    return new Error("That group does not exist")
   }
   return group
 }

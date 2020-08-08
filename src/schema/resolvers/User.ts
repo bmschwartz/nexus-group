@@ -1,4 +1,4 @@
-import { Context } from '../../context'
+import { Context } from "../../context"
 
 export const UserResolvers = {
   async memberships(user: any, args: any, ctx: Context) {

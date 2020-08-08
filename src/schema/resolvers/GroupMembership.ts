@@ -1,6 +1,6 @@
-import { Context } from '../../context'
-import { GroupMembershipWhereInput, PrismaClient } from '@prisma/client'
-import { validateGroupExists } from './Group'
+import { Context } from "../../context"
+import { GroupMembershipWhereInput, PrismaClient } from "@prisma/client"
+import { validateGroupExists } from "./Group"
 
 export const GroupMembershipQuery = {
   async myMemberships(parent: any, args: any, ctx: Context) {
@@ -37,7 +37,7 @@ export const GroupMembershipQuery = {
     groupId = Number(groupId)
 
     return ctx.prisma.groupMembership.findMany({
-      where: { active: false, status: 'PENDING' },
+      where: { active: false, status: "PENDING" },
     })
   },
 }
@@ -55,7 +55,7 @@ export const GroupMembershipMutations = {
     })
 
     if (membership) {
-      return new Error('This user already belongs to the group')
+      return new Error("This user already belongs to the group")
     }
 
     return ctx.prisma.groupMembership.create({
@@ -147,15 +147,15 @@ export const GroupMembershipMutations = {
     })
 
     if (membership) {
-      return new Error('User already has a membership with this group')
+      return new Error("User already has a membership with this group")
     }
 
     return ctx.prisma.groupMembership.create({
       data: {
         memberId: userId,
         active: false,
-        role: 'MEMBER',
-        status: 'PENDING',
+        role: "MEMBER",
+        status: "PENDING",
         group: {
           connect: {
             id: groupId,
@@ -192,7 +192,7 @@ export const validateMembershipExists = async (
     where: { id: Number(membershipId) },
   })
   if (!membership) {
-    return new Error('Membership does not exist')
+    return new Error("Membership does not exist")
   }
   return membership
 }
@@ -209,13 +209,13 @@ export const validateActiveUserHasRoleAndStatus = async (
   })
 
   if (!userMembership) {
-    return new Error('User is not a member of that group')
+    return new Error("User is not a member of that group")
   }
 
-  if (typeof roles === 'string') {
+  if (typeof roles === "string") {
     roles = [roles]
   }
-  if (typeof statuses === 'string') {
+  if (typeof statuses === "string") {
     statuses = [statuses]
   }
 
@@ -228,6 +228,6 @@ export const validateActiveUserHasRoleAndStatus = async (
   }
 
   if (!authorized) {
-    return new Error('Not Authorized')
+    return new Error("Not Authorized")
   }
 }
