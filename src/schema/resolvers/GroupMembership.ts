@@ -1,12 +1,10 @@
-import { Context } from "../../context"
 import { GroupMembershipWhereInput, PrismaClient } from "@prisma/client"
-import { validateGroupExists } from "./Group"
+import { Context } from "../../context"
 
 export const GroupMembershipQuery = {
   async myMemberships(parent: any, args: any, ctx: Context) {
-    const {
-      input: { roles, statuses },
-    } = args
+    const roles = args.input ? args.input.roles : null
+    const statuses = args.input ? args.input.status : null
 
     const where: GroupMembershipWhereInput = { memberId: ctx.userId }
 
@@ -233,4 +231,5 @@ export const validateActiveUserHasRoleAndStatus = async (
   if (!authorized) {
     return new Error("Not Authorized")
   }
+  return null
 }
