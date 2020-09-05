@@ -31,7 +31,14 @@ export const GroupQuery = {
     const {
       input: { name },
     } = args
-    const groupCount = await ctx.prisma.group.count({ where: { name } })
+    const groupCount = await ctx.prisma.group.count({
+      where: {
+        name: {
+          equals: name.trim(),
+          mode: "insensitive",
+        },
+      },
+    })
     return groupCount > 0
   },
 }
