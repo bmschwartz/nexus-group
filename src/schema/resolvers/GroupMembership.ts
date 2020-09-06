@@ -3,13 +3,15 @@ import { Context } from "../../context"
 
 export const GroupMembershipQuery = {
   async membership(_: any, args: any, ctx: Context) {
-    const { groupId } = args
+    const {
+      input: { groupId },
+    } = args
 
     return ctx.prisma.groupMembership.findOne({
       where: {
         GroupMembership_memberId_groupId_key: {
           memberId: Number(ctx.userId),
-          groupId,
+          groupId: Number(groupId),
         },
       },
     })
@@ -218,11 +220,11 @@ export const validateActiveUserHasRoleAndStatus = async (
   roles: string[] | string | undefined,
   statuses: string[] | string | undefined,
 ) => {
-  const userMembership = await prisma.groupMembership.findOne({
+  const groupMembership = await prisma.groupMembership.findOne({
     where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
   })
 
-  if (!userMembership) {
+  if (!groupMembership) {
     return new Error("User is not a member of that group")
   }
 
@@ -233,12 +235,12 @@ export const validateActiveUserHasRoleAndStatus = async (
     statuses = [statuses]
   }
 
-  let authorized = userMembership.active
+  let authorized = groupMembership.active
   if (authorized && roles) {
-    authorized = authorized && roles.includes(userMembership.role)
+    authorized = authorized && roles.includes(groupMembership.role)
   }
   if (authorized && statuses) {
-    authorized = authorized && statuses.includes(userMembership.status)
+    authorized = authorized && statuses.includes(groupMembership.status)
   }
 
   if (!authorized) {
