@@ -5,6 +5,7 @@ extend type Query {
   groupExists(input: GroupExistsInput!): Boolean!
 
   # GroupMembership
+  membership(input: MembershipInput!): GroupMembership!
   myMemberships(input: MyMembershipsInput): [GroupMembership!]
   groupMembers(input: GroupMembersInput!): [GroupMembership!]
   membershipRequests(input: MembershipRequestsInput!): [GroupMembership!]
@@ -102,6 +103,10 @@ enum MembershipRole {
   MEMBER
   TRADER
   ADMIN
+}
+
+input MembershipInput {
+  groupId: ID!
 }
 
 input MyMembershipsInput {

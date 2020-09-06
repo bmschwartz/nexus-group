@@ -2,7 +2,20 @@ import { GroupMembershipWhereInput, PrismaClient } from "@prisma/client"
 import { Context } from "../../context"
 
 export const GroupMembershipQuery = {
-  async myMemberships(parent: any, args: any, ctx: Context) {
+  async membership(_: any, args: any, ctx: Context) {
+    const { groupId } = args
+
+    return ctx.prisma.groupMembership.findOne({
+      where: {
+        GroupMembership_memberId_groupId_key: {
+          memberId: Number(ctx.userId),
+          groupId,
+        },
+      },
+    })
+  },
+
+  async myMemberships(_: any, args: any, ctx: Context) {
     const roles = args.input ? args.input.roles : null
     const statuses = args.input ? args.input.status : null
 
@@ -19,7 +32,7 @@ export const GroupMembershipQuery = {
     return ctx.prisma.groupMembership.findMany({ where })
   },
 
-  async groupMembers(parent: any, args: any, ctx: Context) {
+  async groupMembers(_: any, args: any, ctx: Context) {
     const {
       input: { groupId },
     } = args
@@ -28,7 +41,7 @@ export const GroupMembershipQuery = {
     })
   },
 
-  async membershipRequests(parent: any, args: any, ctx: Context) {
+  async membershipRequests(_: any, args: any, ctx: Context) {
     let {
       input: { groupId },
     } = args
@@ -41,7 +54,7 @@ export const GroupMembershipQuery = {
 }
 
 export const GroupMembershipMutations = {
-  async createMembership(parent: any, args: any, ctx: Context) {
+  async createMembership(_: any, args: any, ctx: Context) {
     let {
       input: { groupId, memberId },
     } = args
@@ -70,7 +83,7 @@ export const GroupMembershipMutations = {
     })
   },
 
-  async updateMembershipRole(parent: any, args: any, ctx: Context) {
+  async updateMembershipRole(_: any, args: any, ctx: Context) {
     const {
       input: { membershipId, role },
     } = args
@@ -86,7 +99,7 @@ export const GroupMembershipMutations = {
     })
   },
 
-  async updateMembershipStatus(parent: any, args: any, ctx: Context) {
+  async updateMembershipStatus(_: any, args: any, ctx: Context) {
     const {
       input: { membershipId, status },
     } = args
@@ -102,7 +115,7 @@ export const GroupMembershipMutations = {
     })
   },
 
-  async updateMembershipActive(parent: any, args: any, ctx: Context) {
+  async updateMembershipActive(_: any, args: any, ctx: Context) {
     const {
       input: { membershipId, active },
     } = args
@@ -118,7 +131,7 @@ export const GroupMembershipMutations = {
     })
   },
 
-  async deleteMembership(parent: any, args: any, ctx: Context) {
+  async deleteMembership(_: any, args: any, ctx: Context) {
     const {
       input: { membershipId },
     } = args
@@ -133,7 +146,7 @@ export const GroupMembershipMutations = {
     })
   },
 
-  async requestGroupAccess(parent: any, args: any, ctx: Context) {
+  async requestGroupAccess(_: any, args: any, ctx: Context) {
     let {
       input: { groupId },
     } = args
