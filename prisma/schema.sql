@@ -25,8 +25,8 @@ CREATE TABLE "public"."GroupMembership" (
 CREATE TABLE "public"."GroupMembershipOption" (
   id SERIAL PRIMARY KEY NOT NULL,
   "groupId" INTEGER NOT NULL,
-  membershipFee NUMERIC NOT NULL,
-  membershipLength INTEGER NOT NULL,
+  "membershipFee" NUMERIC NOT NULL,
+  "membershipLength" INTEGER NOT NULL,
   FOREIGN KEY ("groupId") REFERENCES "public"."Group"(id)
 );
 

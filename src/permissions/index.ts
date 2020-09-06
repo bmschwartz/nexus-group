@@ -61,7 +61,7 @@ export const permissions = shield({
   Query: {
     // Group Queries
     allGroups: isAuthenticated,
-    group: and(isAuthenticated, or(isGroupAdmin, isGroupTrader)),
+    group: isAuthenticated,
     groupExists: isAuthenticated,
     membershipRequests: and(isAuthenticated, isGroupAdmin),
 
