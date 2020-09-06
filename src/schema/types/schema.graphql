@@ -48,6 +48,14 @@ type Group @key(fields: "id") {
 input CreateGroupInput {
   name: String!
   description: String!
+  telegram: String
+  discord: String
+  email: String
+  membershipLength: Int!
+  membershipFee: Float!
+  payInPlatform: Boolean!
+  payoutCurrency: String
+  payoutAddress: String
 }
 
 input RenameGroupInput {

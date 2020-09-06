@@ -3,6 +3,7 @@ CREATE DATABASE "nexus_groups";
 
 CREATE TYPE MEMBERSHIP_STATUS AS ENUM('PENDING', 'APPROVED', 'DENIED');
 CREATE TYPE MEMBERSHIP_ROLE AS ENUM('MEMBER', 'ADMIN', 'TRADER');
+CREATE TYPE PAYOUT_CURRENCY AS ENUM('BTC', 'ETH', 'LTC');
 
 CREATE TABLE "public"."Group" (
   id SERIAL PRIMARY KEY NOT NULL,
@@ -21,6 +22,14 @@ CREATE TABLE "public"."GroupMembership" (
   UNIQUE("memberId", "groupId")
 );
 
+CREATE TABLE "public"."GroupMembershipOption" (
+  id SERIAL PRIMARY KEY NOT NULL,
+  "groupId" INTEGER NOT NULL,
+  membershipFee NUMERIC NOT NULL,
+  membershipLength INTEGER NOT NULL,
+  FOREIGN KEY ("groupId") REFERENCES "public"."Group"(id)
+);
+
 ALTER TABLE "public"."Group"
   ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT TRUE;
 
@@ -32,3 +41,11 @@ ALTER TABLE "public"."Group"
 
 ALTER TABLE "public"."Group"
   ALTER COLUMN "description" SET NOT NULL;
+
+ALTER TABLE "public"."Group"
+  ADD COLUMN telegram VARCHAR(255),
+  ADD COLUMN discord VARCHAR(255),
+  ADD COLUMN email VARCHAR(255),
+  ADD COLUMN "payoutAddress" VARCHAR(255),
+  ADD COLUMN "payoutCurrency" PAYOUT_CURRENCY NOT NULL DEFAULT 'BTC',
+  ADD COLUMN "payInPlatform" BOOLEAN NOT NULL DEFAULT FALSE;

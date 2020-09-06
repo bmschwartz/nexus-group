@@ -1,10 +1,5 @@
 import { Context } from "../../context"
-import {
-  PrismaClient,
-  GroupMembershipCreateWithoutGroupInput,
-  MembershipStatus,
-  MembershipRole,
-} from "@prisma/client"
+import { PrismaClient, MembershipStatus, MembershipRole } from "@prisma/client"
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -46,7 +41,18 @@ export const GroupQuery = {
 export const GroupMutations = {
   async createGroup(parent: any, args: any, ctx: Context) {
     const {
-      input: { name, description },
+      input: {
+        name,
+        description,
+        telegram,
+        discord,
+        email,
+        membershipLength,
+        membershipFee,
+        payInPlatform,
+        payoutCurrency,
+        payoutAddress,
+      },
     } = args
 
     if (!ctx.userId) {
@@ -55,6 +61,10 @@ export const GroupMutations = {
 
     validateGroupName(name)
     validateGroupDescription(description)
+
+    if (email) {
+      validateEmail(email)
+    }
 
     const group = await ctx.prisma.group.findOne({ where: { name } })
 
@@ -66,6 +76,12 @@ export const GroupMutations = {
       data: {
         name,
         description,
+        email,
+        telegram,
+        discord,
+        payInPlatform,
+        payoutAddress,
+        payoutCurrency,
         active: true,
         members: {
           create: {
@@ -73,6 +89,12 @@ export const GroupMutations = {
             memberId: ctx.userId,
             status: MembershipStatus.APPROVED,
             role: MembershipRole.ADMIN,
+          },
+        },
+        membershipOptions: {
+          create: {
+            membershipFee,
+            membershipLength,
           },
         },
       },
@@ -169,6 +191,16 @@ const validateGroupName = (name: string) => {
     return new Error(
       `Name must be between ${GROUP_NAME_VALIDATION.minLength} and ${GROUP_NAME_VALIDATION.maxLength} characters long`,
     )
+  }
+  return null
+}
+
+const validateEmail = (email: string) => {
+  const regexp = new RegExp(
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  )
+  if (!regexp.test(email)) {
+    return new Error("Invalid email")
   }
   return null
 }
