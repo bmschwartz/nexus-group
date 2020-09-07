@@ -11,7 +11,6 @@ datasource db {
 model Group {
   id                Int                     @default(autoincrement()) @id
   name              String                  @unique
-  createdAt         DateTime                @default(now())
   active            Boolean                 @default(true)
   description       String
   telegram          String?
@@ -22,26 +21,32 @@ model Group {
   payInPlatform     Boolean                 @default(false)
   members           GroupMembership[]
   membershipOptions GroupMembershipOption[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @default(now())
 }
 
 model GroupMembership {
-  id       Int              @default(autoincrement()) @id
-  memberId Int
-  groupId  Int
-  active   Boolean          @default(false)
-  role     MembershipRole   @default(MEMBER)
-  status   MembershipStatus @default(PENDING)
-  group    Group            @relation(fields: [groupId], references: [id])
+  id        Int              @default(autoincrement()) @id
+  memberId  Int
+  groupId   Int
+  active    Boolean          @default(false)
+  role      MembershipRole   @default(MEMBER)
+  status    MembershipStatus @default(PENDING)
+  group     Group            @relation(fields: [groupId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @default(now())
 
   @@unique([memberId, groupId], name: "GroupMembership_memberId_groupId_key")
 }
 
 model GroupMembershipOption {
-  id               Int   @default(autoincrement()) @id
+  id               Int      @default(autoincrement()) @id
   groupId          Int
   membershipFee    Float
   membershipLength Int
-  group            Group @relation(fields: [groupId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  group            Group    @relation(fields: [groupId], references: [id])
 }
 
 enum MembershipRole {

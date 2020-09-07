@@ -49,3 +49,15 @@ ALTER TABLE "public"."Group"
   ADD COLUMN "payoutAddress" VARCHAR(255),
   ADD COLUMN "payoutCurrency" PAYOUT_CURRENCY NOT NULL DEFAULT 'BTC',
   ADD COLUMN "payInPlatform" BOOLEAN NOT NULL DEFAULT FALSE;
+
+------- ADD DATE FIELDS -------
+ALTER TABLE "public"."Group"
+  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
+
+ALTER TABLE "public"."GroupMembership"
+  ADD COLUMN "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
+
+ALTER TABLE "public"."GroupMembershipOption"
+  ADD COLUMN "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
