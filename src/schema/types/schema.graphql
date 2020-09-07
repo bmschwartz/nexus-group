@@ -1,3 +1,5 @@
+scalar DateTime
+
 extend type Query {
   # Group
   allGroups: [Group!]!
@@ -44,6 +46,8 @@ type Group @key(fields: "id") {
   active: Boolean!
   description: String!
   memberships: [GroupMembership!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 input CreateGroupInput {
@@ -91,6 +95,8 @@ type GroupMembership @key(fields: "id") {
   active: Boolean!
   role: MembershipRole!
   status: MembershipStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 enum MembershipStatus {
