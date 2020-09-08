@@ -8,7 +8,17 @@ CREATE TYPE PAYOUT_CURRENCY AS ENUM('BTC', 'ETH', 'LTC');
 CREATE TABLE "public"."Group" (
   id SERIAL PRIMARY KEY NOT NULL,
   name VARCHAR(255) NOT NULL,
-  "createdAt" TIMESTAMP NOT NULL DEFAULT now()
+  "description" TEXT NOT NULL,
+  "active" BOOLEAN NOT NULL DEFAULT TRUE,
+  telegram VARCHAR(255),
+  discord VARCHAR(255),
+  email VARCHAR(255),
+  "payoutAddress" VARCHAR(255),
+  "payoutCurrency" PAYOUT_CURRENCY NOT NULL DEFAULT 'BTC',
+  "payInPlatform" BOOLEAN NOT NULL DEFAULT FALSE,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+  UNIQUE("name")
 );
 
 CREATE TABLE "public"."GroupMembership" (
@@ -18,6 +28,8 @@ CREATE TABLE "public"."GroupMembership" (
   "active" BOOLEAN NOT NULL DEFAULT FALSE,
   "role" MEMBERSHIP_ROLE NOT NULL DEFAULT 'MEMBER',
   "status" MEMBERSHIP_STATUS NOT NULL DEFAULT 'PENDING',
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
   FOREIGN KEY ("groupId") REFERENCES "public"."Group"(id),
   UNIQUE("memberId", "groupId")
 );
@@ -27,37 +39,7 @@ CREATE TABLE "public"."GroupMembershipOption" (
   "groupId" INTEGER NOT NULL,
   "membershipFee" NUMERIC NOT NULL,
   "membershipLength" INTEGER NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
   FOREIGN KEY ("groupId") REFERENCES "public"."Group"(id)
 );
-
-ALTER TABLE "public"."Group"
-  ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT TRUE;
-
-ALTER TABLE "public"."Group"
-  ADD CONSTRAINT unique_name UNIQUE("name");
-
-ALTER TABLE "public"."Group"
-  ADD COLUMN "description" TEXT;
-
-ALTER TABLE "public"."Group"
-  ALTER COLUMN "description" SET NOT NULL;
-
-ALTER TABLE "public"."Group"
-  ADD COLUMN telegram VARCHAR(255),
-  ADD COLUMN discord VARCHAR(255),
-  ADD COLUMN email VARCHAR(255),
-  ADD COLUMN "payoutAddress" VARCHAR(255),
-  ADD COLUMN "payoutCurrency" PAYOUT_CURRENCY NOT NULL DEFAULT 'BTC',
-  ADD COLUMN "payInPlatform" BOOLEAN NOT NULL DEFAULT FALSE;
-
-------- ADD DATE FIELDS -------
-ALTER TABLE "public"."Group"
-  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
-
-ALTER TABLE "public"."GroupMembership"
-  ADD COLUMN "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
-
-ALTER TABLE "public"."GroupMembershipOption"
-  ADD COLUMN "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-  ADD COLUMN "updatedAt" TIMESTAMP NOT NULL DEFAULT now();
