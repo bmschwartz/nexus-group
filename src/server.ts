@@ -14,9 +14,9 @@ const server = new ApolloServer({
   ),
   engine: {
     graphVariant: "current",
-    reportSchema: true,
   },
   context: createContext,
+  introspection: true,
 })
 
 server.listen({ port: 4002 }).then(({ url }) => {
