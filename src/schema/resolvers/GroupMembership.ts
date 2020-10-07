@@ -8,7 +8,7 @@ export const GroupMembershipQuery = {
     } = args
 
     return ctx.prisma.groupMembership.findOne({
-      where: { id: membershipId }
+      where: { id: Number(membershipId) }
     })
   },
 
