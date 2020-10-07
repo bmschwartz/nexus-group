@@ -4,6 +4,16 @@ import { Context } from "../../context"
 export const GroupMembershipQuery = {
   async membership(_: any, args: any, ctx: Context) {
     const {
+      input: { membershipId },
+    } = args
+
+    return ctx.prisma.groupMembership.findOne({
+      where: { id: membershipId }
+    })
+  },
+
+  async myMembership(_: any, args: any, ctx: Context) {
+    const {
       input: { groupId },
     } = args
 

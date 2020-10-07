@@ -8,6 +8,7 @@ extend type Query {
 
   # GroupMembership
   membership(input: MembershipInput!): GroupMembership!
+  myMembership(input: MyMembershipInput!): GroupMembership!
   myMemberships(input: MyMembershipsInput): [GroupMembership!]
   groupMembers(input: GroupMembersInput!): [GroupMembership!]
   membershipRequests(input: MembershipRequestsInput!): [GroupMembership!]
@@ -112,6 +113,10 @@ enum MembershipRole {
 }
 
 input MembershipInput {
+  membershipId: ID!
+}
+
+input MyMembershipInput {
   groupId: ID!
 }
 
