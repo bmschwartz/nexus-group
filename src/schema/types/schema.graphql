@@ -31,14 +31,6 @@ extend type Mutation {
 }
 
 ########################
-#  User extension
-########################
-extend type User @key(fields: "id") {
-  id: ID! @external
-  memberships: [GroupMembership!]!
-}
-
-########################
 #  Group
 ########################
 type Group @key(fields: "id") {
@@ -161,4 +153,21 @@ input UpdateMembershipActiveInput {
 
 input DeleteMembershipInput {
   membershipId: ID!
+}
+
+########################
+#  User extension
+########################
+extend type User @key(fields: "id") {
+  id: ID! @external
+  memberships: [GroupMembership!]!
+}
+
+############################
+#  ExchangeAccount extension
+############################
+extend type ExchangeAccount @key(fields: "id") {
+  id: ID! @external
+  membershipId: ID! @external
+  membership: GroupMembership! @requires(fields: "membershipId")
 }
