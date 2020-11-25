@@ -20,7 +20,7 @@ export const GroupQuery = {
     const {
       input: { groupId },
     } = args
-    return ctx.prisma.group.findOne({ where: { id: Number(groupId) } })
+    return ctx.prisma.group.findUnique({ where: { id: Number(groupId) } })
   },
   async groupExists(parent: any, args: any, ctx: Context) {
     const {
@@ -66,7 +66,7 @@ export const GroupMutations = {
       validateEmail(email)
     }
 
-    const group = await ctx.prisma.group.findOne({ where: { name } })
+    const group = await ctx.prisma.group.findUnique({ where: { name } })
 
     if (group) {
       return new Error("A group by that name already exists")
@@ -149,7 +149,7 @@ export const GroupMutations = {
 
 export const GroupResolvers = {
   async __resolveReference(group: any, args: any, ctx: Context) {
-    return ctx.prisma.group.findOne({ where: { id: Number(group.id) } })
+    return ctx.prisma.group.findUnique({ where: { id: Number(group.id) } })
   },
 
   async memberships(group: any, args: any, ctx: Context) {
@@ -165,7 +165,7 @@ export const validateGroupExists = async (
   prisma: PrismaClient,
   groupId: any,
 ) => {
-  const group = await prisma.group.findOne({ where: { id: groupId } })
+  const group = await prisma.group.findUnique({ where: { id: groupId } })
   if (!group) {
     return new Error("That group does not exist")
   }

@@ -7,7 +7,7 @@ export const GroupMembershipQuery = {
       input: { membershipId },
     } = args
 
-    return ctx.prisma.groupMembership.findOne({
+    return ctx.prisma.groupMembership.findUnique({
       where: { id: Number(membershipId) }
     })
   },
@@ -17,7 +17,7 @@ export const GroupMembershipQuery = {
       input: { groupId },
     } = args
 
-    return ctx.prisma.groupMembership.findOne({
+    return ctx.prisma.groupMembership.findUnique({
       where: {
         GroupMembership_memberId_groupId_key: {
           memberId: Number(ctx.userId),
@@ -76,7 +76,7 @@ export const GroupMembershipMutations = {
     groupId = Number(groupId)
     memberId = Number(memberId)
 
-    const membership = await ctx.prisma.groupMembership.findOne({
+    const membership = await ctx.prisma.groupMembership.findUnique({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
     })
 
@@ -166,7 +166,7 @@ export const GroupMembershipMutations = {
 
     const userId = Number(ctx.userId)
 
-    const membership = await ctx.prisma.groupMembership.findOne({
+    const membership = await ctx.prisma.groupMembership.findUnique({
       where: {
         GroupMembership_memberId_groupId_key: { memberId: userId, groupId },
       },
@@ -194,13 +194,13 @@ export const GroupMembershipMutations = {
 
 export const GroupMembershipResolvers = {
   async __resolveReference(groupMembership: any, ctx: Context) {
-    return ctx.prisma.groupMembership.findOne({
+    return ctx.prisma.groupMembership.findUnique({
       where: { id: Number(groupMembership.id) },
     })
   },
 
   async group(membership: any, args: any, ctx: Context) {
-    return ctx.prisma.group.findOne({ where: { id: membership.groupId } })
+    return ctx.prisma.group.findUnique({ where: { id: membership.groupId } })
   },
 
   async member(membership: any, args: any, ctx: Context) {
@@ -214,7 +214,7 @@ export const validateMembershipExists = async (
   prisma: PrismaClient,
   membershipId: string | number,
 ) => {
-  const membership = await prisma.groupMembership.findOne({
+  const membership = await prisma.groupMembership.findUnique({
     where: { id: Number(membershipId) },
   })
   if (!membership) {
@@ -230,7 +230,7 @@ export const validateActiveUserHasRoleAndStatus = async (
   roles: string[] | string | undefined,
   statuses: string[] | string | undefined,
 ) => {
-  const groupMembership = await prisma.groupMembership.findOne({
+  const groupMembership = await prisma.groupMembership.findUnique({
     where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
   })
 

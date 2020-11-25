@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["insensitiveFilters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,7 +8,7 @@ datasource db {
 }
 
 model Group {
-  id                Int                     @default(autoincrement()) @id
+  id                Int                     @id @default(autoincrement())
   name              String                  @unique
   active            Boolean                 @default(true)
   description       String
@@ -26,7 +25,7 @@ model Group {
 }
 
 model GroupMembership {
-  id        Int              @default(autoincrement()) @id
+  id        Int              @id @default(autoincrement())
   memberId  Int
   groupId   Int
   active    Boolean          @default(false)
@@ -40,7 +39,7 @@ model GroupMembership {
 }
 
 model GroupMembershipOption {
-  id               Int      @default(autoincrement()) @id
+  id               Int      @id @default(autoincrement())
   groupId          Int
   membershipFee    Float
   membershipLength Int
