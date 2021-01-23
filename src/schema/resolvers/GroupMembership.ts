@@ -1,4 +1,4 @@
-import { GroupMembershipWhereInput, PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import { Context } from "../../context"
 
 export const GroupMembershipQuery = {
@@ -8,7 +8,7 @@ export const GroupMembershipQuery = {
     } = args
 
     return ctx.prisma.groupMembership.findUnique({
-      where: { id: Number(membershipId) }
+      where: { id: membershipId }
     })
   },
 
@@ -20,8 +20,8 @@ export const GroupMembershipQuery = {
     return ctx.prisma.groupMembership.findUnique({
       where: {
         GroupMembership_memberId_groupId_key: {
-          memberId: Number(ctx.userId),
-          groupId: Number(groupId),
+          memberId: ctx.userId!,
+          groupId: groupId,
         },
       },
     })
@@ -31,7 +31,7 @@ export const GroupMembershipQuery = {
     const roles = args.input ? args.input.roles : null
     const statuses = args.input ? args.input.status : null
 
-    const where: GroupMembershipWhereInput = { memberId: ctx.userId }
+    const where: Prisma.GroupMembershipWhereInput = { memberId: ctx.userId }
 
     if (roles) {
       where.role = { in: roles }
@@ -49,7 +49,9 @@ export const GroupMembershipQuery = {
       input: { groupId },
     } = args
     return ctx.prisma.groupMembership.findMany({
-      where: { groupId: Number(groupId) },
+      where: {
+        groupId: groupId
+      },
     })
   },
 
@@ -57,10 +59,9 @@ export const GroupMembershipQuery = {
     let {
       input: { groupId },
     } = args
-    groupId = Number(groupId)
 
     return ctx.prisma.groupMembership.findMany({
-      where: { active: false, status: "PENDING" },
+      where: { active: false, status: "PENDING", groupId },
     })
   },
 }
@@ -73,8 +74,6 @@ export const GroupMembershipMutations = {
     const {
       input: { role, status },
     } = args
-    groupId = Number(groupId)
-    memberId = Number(memberId)
 
     const membership = await ctx.prisma.groupMembership.findUnique({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
@@ -106,7 +105,9 @@ export const GroupMembershipMutations = {
     }
 
     return ctx.prisma.groupMembership.update({
-      where: { id: Number(membershipId) },
+      where: {
+        id: membershipId
+      },
       data: { role },
     })
   },
@@ -122,7 +123,9 @@ export const GroupMembershipMutations = {
     }
 
     return ctx.prisma.groupMembership.update({
-      where: { id: Number(membershipId) },
+      where: {
+        id: membershipId
+      },
       data: { status },
     })
   },
@@ -138,7 +141,9 @@ export const GroupMembershipMutations = {
     }
 
     return ctx.prisma.groupMembership.update({
-      where: { id: Number(membershipId) },
+      where: {
+        id: membershipId
+      },
       data: { active },
     })
   },
@@ -154,7 +159,9 @@ export const GroupMembershipMutations = {
     }
 
     return ctx.prisma.groupMembership.delete({
-      where: { id: Number(membershipId) },
+      where: {
+        id: membershipId
+      },
     })
   },
 
@@ -162,9 +169,8 @@ export const GroupMembershipMutations = {
     let {
       input: { groupId },
     } = args
-    groupId = Number(groupId)
 
-    const userId = Number(ctx.userId)
+    const userId = ctx.userId!
 
     const membership = await ctx.prisma.groupMembership.findUnique({
       where: {
@@ -195,7 +201,9 @@ export const GroupMembershipMutations = {
 export const GroupMembershipResolvers = {
   async __resolveReference(groupMembership: any, ctx: Context) {
     return ctx.prisma.groupMembership.findUnique({
-      where: { id: Number(groupMembership.id) },
+      where: {
+        id: groupMembership.id
+      },
     })
   },
 
@@ -212,10 +220,12 @@ export const GroupMembershipResolvers = {
 
 export const validateMembershipExists = async (
   prisma: PrismaClient,
-  membershipId: string | number,
+  membershipId: string | undefined,
 ) => {
   const membership = await prisma.groupMembership.findUnique({
-    where: { id: Number(membershipId) },
+    where: {
+      id: membershipId
+    },
   })
   if (!membership) {
     return new Error("Membership does not exist")

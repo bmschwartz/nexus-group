@@ -20,7 +20,7 @@ export const GroupQuery = {
     const {
       input: { groupId },
     } = args
-    return ctx.prisma.group.findUnique({ where: { id: Number(groupId) } })
+    return ctx.prisma.group.findUnique({ where: { id: groupId } })
   },
   async groupExists(parent: any, args: any, ctx: Context) {
     const {
@@ -108,7 +108,6 @@ export const GroupMutations = {
     const {
       input: { name: newName },
     } = args
-    groupId = Number(groupId)
 
     validateGroupName(newName)
 
@@ -125,7 +124,6 @@ export const GroupMutations = {
     const {
       input: { description },
     } = args
-    groupId = Number(groupId)
 
     validateGroupDescription(description)
 
@@ -141,7 +139,7 @@ export const GroupMutations = {
     } = args
 
     return ctx.prisma.group.update({
-      where: { id: Number(groupId) },
+      where: { id: groupId },
       data: { active: false },
     })
   },
@@ -149,13 +147,13 @@ export const GroupMutations = {
 
 export const GroupResolvers = {
   async __resolveReference(group: any, args: any, ctx: Context) {
-    return ctx.prisma.group.findUnique({ where: { id: Number(group.id) } })
+    return ctx.prisma.group.findUnique({ where: { id: group.id } })
   },
 
   async memberships(group: any, args: any, ctx: Context) {
     return ctx.prisma.groupMembership.findMany({
       where: {
-        groupId: Number(group.id),
+        groupId: group.id,
       },
     })
   },
