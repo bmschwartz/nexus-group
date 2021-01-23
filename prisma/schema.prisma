@@ -8,56 +8,59 @@ datasource db {
 }
 
 model Group {
-  id                Int                     @id @default(autoincrement())
+  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
+  id                String                  @id @default(dbgenerated())
   name              String                  @unique
-  active            Boolean                 @default(true)
   description       String
+  active            Boolean                 @default(true)
   telegram          String?
   discord           String?
   email             String?
   payoutAddress     String?
   payoutCurrency    PayoutCurrency          @default(BTC)
   payInPlatform     Boolean                 @default(false)
-  members           GroupMembership[]
-  membershipOptions GroupMembershipOption[]
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @default(now())
+  members           GroupMembership[]
+  membershipOptions GroupMembershipOption[]
 }
 
 model GroupMembership {
-  id        Int              @id @default(autoincrement())
-  memberId  Int
-  groupId   Int
+  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
+  id        String           @id @default(dbgenerated())
+  memberId  String
+  groupId   String
   active    Boolean          @default(false)
   role      MembershipRole   @default(MEMBER)
   status    MembershipStatus @default(PENDING)
-  group     Group            @relation(fields: [groupId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @default(now())
+  group     Group            @relation(fields: [groupId], references: [id])
 
   @@unique([memberId, groupId], name: "GroupMembership_memberId_groupId_key")
 }
 
 model GroupMembershipOption {
-  id               Int      @id @default(autoincrement())
-  groupId          Int
+  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
+  id               String   @id @default(dbgenerated())
+  groupId          String
   membershipFee    Float
   membershipLength Int
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
-  group            Group    @relation(fields: [groupId], references: [id])
+  Group            Group    @relation(fields: [groupId], references: [id])
 }
 
 enum MembershipRole {
-  ADMIN
   MEMBER
+  ADMIN
   TRADER
 }
 
 enum MembershipStatus {
+  PENDING
   APPROVED
   DENIED
-  PENDING
 }
 
 enum PayoutCurrency {
