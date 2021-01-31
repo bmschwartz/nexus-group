@@ -155,14 +155,20 @@ export const GroupMembershipMutations = {
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
     if (membership instanceof Error) {
-      return membership
+      return { success: false, error: "Membership does not exist" }
     }
 
-    return ctx.prisma.groupMembership.delete({
+    const deletedMembership = await ctx.prisma.groupMembership.delete({
       where: {
         id: membershipId
       },
     })
+
+    if (!deletedMembership) {
+      return { success: false, error: "Could not delete membership" }
+    }
+
+    return { success: true }
   },
 
   async requestGroupAccess(_: any, args: any, ctx: Context) {

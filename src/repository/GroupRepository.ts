@@ -15,8 +15,6 @@ export interface GroupMembersResult {
 }
 
 export const getGroupMembers = async (ctx: Context, { groupId, limit, offset, roles }: GroupMembersInput): Promise<GroupMembersResult | Error> => {
-  console.log({ limit, offset, groupId, roles });
-
   const whereClause: Prisma.GroupMembershipWhereInput = { groupId }
 
   if (roles) {

@@ -27,7 +27,7 @@ extend type Mutation {
   updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
   updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
   updateMembershipActive(input: UpdateMembershipActiveInput!): GroupMembership
-  deleteMembership(input: DeleteMembershipInput!): GroupMembership
+  deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult
 }
 
 ########################
@@ -159,7 +159,13 @@ input UpdateMembershipActiveInput {
 }
 
 input DeleteMembershipInput {
+  groupId: ID!
   membershipId: ID!
+}
+
+type DeleteMembershipResult {
+  success: Boolean!
+  error: String
 }
 
 ########################

@@ -11,6 +11,7 @@ const isGroupAdmin = rule({ cache: "strict" })(
     const {
       input: { groupId },
     } = args
+
     const error = await validateActiveUserHasRoleAndStatus(
       ctx.prisma,
       ctx.userId,
@@ -31,7 +32,7 @@ const isGroupTrader = rule({ cache: "strict" })(
     const error = await validateActiveUserHasRoleAndStatus(
       ctx.prisma,
       ctx.userId,
-      Number(groupId),
+      groupId,
       "TRADER",
       "APPROVED",
     )
@@ -48,7 +49,7 @@ const isGroupMember = rule({ cache: "strict" })(
     const error = await validateActiveUserHasRoleAndStatus(
       ctx.prisma,
       ctx.userId,
-      Number(groupId),
+      groupId,
       "MEMBER",
       "APPROVED",
     )
