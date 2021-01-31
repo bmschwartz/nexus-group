@@ -14,7 +14,7 @@ const isGroupAdmin = rule({ cache: "strict" })(
     const error = await validateActiveUserHasRoleAndStatus(
       ctx.prisma,
       ctx.userId,
-      Number(groupId),
+      groupId,
       "ADMIN",
       "APPROVED",
     )
