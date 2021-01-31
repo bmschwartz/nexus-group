@@ -1,5 +1,6 @@
 import { Context } from "../../context"
 import { PrismaClient, MembershipStatus, MembershipRole } from "@prisma/client"
+import { getGroupMembers } from "../../repository/GroupRepository"
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -150,12 +151,15 @@ export const GroupResolvers = {
     return ctx.prisma.group.findUnique({ where: { id: group.id } })
   },
 
-  async memberships(group: any, args: any, ctx: Context) {
-    return ctx.prisma.groupMembership.findMany({
-      where: {
-        groupId: group.id,
-      },
-    })
+  async members(group: any, args: any, ctx: Context) {
+    const { id: groupId } = group
+    const { input } = args
+
+    const limit = input?.limit
+    const offset = input?.offset
+    const roles = input?.roles
+
+    return getGroupMembers(ctx, { groupId, limit, offset, roles })
   },
 }
 

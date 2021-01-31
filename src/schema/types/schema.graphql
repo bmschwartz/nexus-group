@@ -38,7 +38,7 @@ type Group @key(fields: "id") {
   name: String!
   active: Boolean!
   description: String!
-  memberships: [GroupMembership!]!
+  members(input: GroupMembersInput): GroupMembersResult
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -78,6 +78,17 @@ input GroupExistsInput {
   name: String!
 }
 
+input GroupMembersInput {
+  limit: Int
+  offset: Int
+  roles: [MembershipRole!]
+}
+
+type GroupMembersResult {
+  members: [GroupMembership!]!
+  totalCount: Int!
+}
+
 ########################
 #  GroupMembership
 ########################
@@ -115,10 +126,6 @@ input MyMembershipInput {
 input MyMembershipsInput {
   roles: [MembershipRole!]
   statuses: [MembershipStatus!]
-}
-
-input GroupMembersInput {
-  groupId: ID!
 }
 
 input RequestGroupAccessInput {
