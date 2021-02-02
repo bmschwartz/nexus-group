@@ -168,6 +168,8 @@ export const GroupMembershipMutations = {
       return { success: false, error: "Could not delete membership" }
     }
 
+    await ctx.messenger.sendGroupMembershipDeleted(membershipId)
+
     return { success: true }
   },
 

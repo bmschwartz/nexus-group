@@ -1,11 +1,17 @@
 import { PrismaClient } from "@prisma/client"
+import {MessageClient} from "./services/messenger";
+import { initSettings} from "./settings";
 
-const prisma = new PrismaClient()
+initSettings()
+
+export const prisma = new PrismaClient()
+export const messenger = new MessageClient(prisma)
 
 export interface Context {
   userId?: string
   permissions: string[]
   prisma: PrismaClient
+  messenger: MessageClient
 }
 
 export function createContext({ req }: any): Context {
@@ -18,5 +24,6 @@ export function createContext({ req }: any): Context {
     prisma,
     userId,
     permissions,
+    messenger
   }
 }
