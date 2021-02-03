@@ -1,3 +1,5 @@
+CREATE EXTENSION "pgcrypto";
+
 -- CreateEnum
 CREATE TYPE "MembershipRole" AS ENUM ('MEMBER', 'ADMIN', 'TRADER');
 

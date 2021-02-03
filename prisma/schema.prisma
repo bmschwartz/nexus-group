@@ -46,7 +46,7 @@ model GroupMembershipOption {
   membershipLength Int
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
-  Group            Group    @relation(fields: [groupId], references: [id])
+  group            Group    @relation(fields: [groupId], references: [id])
 }
 
 enum MembershipRole {
