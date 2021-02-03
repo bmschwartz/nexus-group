@@ -23,7 +23,7 @@ extend type Mutation {
 
   # GroupMembership
   requestGroupAccess(input: RequestGroupAccessInput!): GroupMembership
-  createMembership(input: CreateGroupMembershipInput!): GroupMembership
+  createMembership(input: CreateGroupMembershipInput!): CreateGroupMembershipResult
   updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
   updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
   updateMembershipActive(input: UpdateMembershipActiveInput!): GroupMembership
@@ -143,6 +143,11 @@ input CreateGroupMembershipInput {
   status: MembershipStatus!
 }
 
+type CreateGroupMembershipResult {
+  success: Boolean!
+  error: String
+}
+
 input UpdateMembershipRoleInput {
   membershipId: ID!
   role: MembershipRole!
@@ -167,6 +172,7 @@ type DeleteMembershipResult {
   success: Boolean!
   error: String
 }
+
 
 ########################
 #  User extension

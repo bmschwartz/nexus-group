@@ -72,23 +72,33 @@ export const GroupMembershipMutations = {
       input: { groupId, memberId, role, status },
     } = args
 
-    const membership = await ctx.prisma.groupMembership.findUnique({
+    const existingMembership = await ctx.prisma.groupMembership.findUnique({
       where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
     })
 
-    if (membership) {
-      return new Error("This user already belongs to the group")
+    if (existingMembership) {
+      return { success: false, error: "This user already belongs to the group" }
     }
 
-    return ctx.prisma.groupMembership.create({
-      data: {
-        group: { connect: { id: groupId } },
-        memberId,
-        active: true,
-        role,
-        status,
-      },
-    })
+    try {
+      const membership = await ctx.prisma.groupMembership.create({
+        data: {
+          group: { connect: { id: groupId } },
+          memberId,
+          active: true,
+          role,
+          status,
+        },
+      })
+
+      if (!membership) {
+        return { success: false, error: "Error creating the membership" }
+      }
+    } catch (e) {
+      return { success: false, error: "Error creating the membership" }
+    }
+
+    return { success: true }
   },
 
   async updateMembershipRole(_: any, args: any, ctx: Context) {
