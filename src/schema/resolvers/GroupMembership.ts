@@ -68,11 +68,8 @@ export const GroupMembershipQuery = {
 
 export const GroupMembershipMutations = {
   async createMembership(_: any, args: any, ctx: Context) {
-    let {
-      input: { groupId, memberId },
-    } = args
     const {
-      input: { role, status },
+      input: { groupId, memberId, role, status },
     } = args
 
     const membership = await ctx.prisma.groupMembership.findUnique({
