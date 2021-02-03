@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
 }
 
 datasource db {
@@ -8,8 +9,7 @@ datasource db {
 }
 
 model Group {
-  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
-  id                String                  @id @default(dbgenerated())
+  id                String                  @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   name              String                  @unique
   description       String
   active            Boolean                 @default(true)
@@ -26,10 +26,9 @@ model Group {
 }
 
 model GroupMembership {
-  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
-  id        String           @id @default(dbgenerated())
-  memberId  String
-  groupId   String
+  id        String           @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  memberId  String           @db.Uuid
+  groupId   String           @db.Uuid
   active    Boolean          @default(false)
   role      MembershipRole   @default(MEMBER)
   status    MembershipStatus @default(PENDING)
@@ -41,9 +40,8 @@ model GroupMembership {
 }
 
 model GroupMembershipOption {
-  /// This field's default value can currently not be parsed: `uuid_generate_v4()`.
-  id               String   @id @default(dbgenerated())
-  groupId          String
+  id               String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  groupId          String   @db.Uuid
   membershipFee    Float
   membershipLength Int
   createdAt        DateTime @default(now())
