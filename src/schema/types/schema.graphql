@@ -28,6 +28,12 @@ extend type Mutation {
   updateMembershipStatus(input: UpdateMembershipStatusInput!): GroupMembership
   updateMembershipActive(input: UpdateMembershipActiveInput!): GroupMembership
   deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult
+
+  # GroupSubscription
+  createGroupSubscription(input: CreateGroupSubscriptionInput!): CreateGroupSubscriptionResult
+
+  # MemberSubscription
+  createMemberSubscription(input: CreateMemberSubscriptionInput!): CreateMemberSubscriptionResult
 }
 
 ########################
@@ -99,6 +105,7 @@ type GroupMembership @key(fields: "id") {
   active: Boolean!
   role: MembershipRole!
   status: MembershipStatus!
+  subscription: MemberSubscription
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -169,6 +176,54 @@ input DeleteMembershipInput {
 }
 
 type DeleteMembershipResult {
+  success: Boolean!
+  error: String
+}
+
+
+########################
+#  GroupSubscription
+########################
+type GroupSubscription @key(fields: "id") {
+  id: ID!
+  group: Group!
+  active: Boolean!
+  fee: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateGroupSubscriptionInput {
+  groupId: ID!
+  fee: Float!
+}
+
+type CreateGroupSubscriptionResult {
+  success: Boolean!
+  error: String
+}
+
+########################
+#  MemberSubscription
+########################
+type MemberSubscription @key(fields: "id") {
+  id: ID!
+  membership: GroupMembership!
+  groupSubscription: GroupSubscription!
+  outstandingBalance: Float!
+  recurring: Boolean!
+  startDate: DateTime!
+  endDate: DateTime!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateMemberSubscriptionInput {
+  membershipId: ID!
+  groupSubscriptionId: ID!
+}
+
+type CreateMemberSubscriptionResult {
   success: Boolean!
   error: String
 }

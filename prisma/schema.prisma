@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["nativeTypes"]
 }
 
@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Group {
-  id                String                  @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String                  @unique
   description       String
   active            Boolean                 @default(true)
@@ -23,10 +23,11 @@ model Group {
   updatedAt         DateTime                @default(now())
   members           GroupMembership[]
   membershipOptions GroupMembershipOption[]
+  groupSubscription GroupSubscription
 }
 
 model GroupMembership {
-  id        String           @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   memberId  String           @db.Uuid
   groupId   String           @db.Uuid
   active    Boolean          @default(false)
@@ -40,7 +41,7 @@ model GroupMembership {
 }
 
 model GroupMembershipOption {
-  id               String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   groupId          String   @db.Uuid
   membershipFee    Float
   membershipLength Int
@@ -50,24 +51,25 @@ model GroupMembershipOption {
 }
 
 model GroupSubscription {
-  id        String           @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  groupId   String           @db.Uuid
-  price     Float
-  active    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @default(now())
-  group     Group            @relation(fields: [groupId], references: [id])
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupId            String               @db.Uuid
+  price              Float
+  active             Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now())
+  group              Group                @relation(fields: [groupId], references: [id])
+  memberSubscription MemberSubscription[]
 }
 
 model MemberSubscription {
-  id                    String            @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  groupSubscriptionId   String            @db.Uuid
-  outstandingBalance    Float
-  startDate             DateTime          @default(now())
-  endDate               DateTime
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @default(now())
-  groupSubscription     GroupSubscription @relation(fields: [groupSubscriptionId], references: [id])
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupSubscriptionId String            @db.Uuid
+  outstandingBalance  Float
+  startDate           DateTime          @default(now())
+  endDate             DateTime
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now())
+  groupSubscription   GroupSubscription @relation(fields: [groupSubscriptionId], references: [id])
 }
 
 enum MembershipRole {
