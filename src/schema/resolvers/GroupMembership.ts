@@ -8,7 +8,7 @@ export const GroupMembershipQuery = {
     } = args
 
     return ctx.prisma.groupMembership.findUnique({
-      where: { id: membershipId }
+      where: { id: membershipId },
     })
   },
 
@@ -17,11 +17,15 @@ export const GroupMembershipQuery = {
       input: { groupId },
     } = args
 
+    if (!ctx.userId) {
+      return null
+    }
+
     return ctx.prisma.groupMembership.findUnique({
       where: {
         GroupMembership_memberId_groupId_key: {
-          memberId: ctx.userId!,
-          groupId: groupId,
+          memberId: ctx.userId,
+          groupId,
         },
       },
     })
@@ -50,13 +54,13 @@ export const GroupMembershipQuery = {
     } = args
     return ctx.prisma.groupMembership.findMany({
       where: {
-        groupId: groupId
+        groupId,
       },
     })
   },
 
   async membershipRequests(_: any, args: any, ctx: Context) {
-    let {
+    const {
       input: { groupId },
     } = args
 
@@ -113,7 +117,7 @@ export const GroupMembershipMutations = {
 
     return ctx.prisma.groupMembership.update({
       where: {
-        id: membershipId
+        id: membershipId,
       },
       data: { role },
     })
@@ -131,7 +135,7 @@ export const GroupMembershipMutations = {
 
     return ctx.prisma.groupMembership.update({
       where: {
-        id: membershipId
+        id: membershipId,
       },
       data: { status },
     })
@@ -149,7 +153,7 @@ export const GroupMembershipMutations = {
 
     return ctx.prisma.groupMembership.update({
       where: {
-        id: membershipId
+        id: membershipId,
       },
       data: { active },
     })
@@ -167,7 +171,7 @@ export const GroupMembershipMutations = {
 
     const deletedMembership = await ctx.prisma.groupMembership.delete({
       where: {
-        id: membershipId
+        id: membershipId,
       },
     })
 
@@ -181,11 +185,15 @@ export const GroupMembershipMutations = {
   },
 
   async requestGroupAccess(_: any, args: any, ctx: Context) {
-    let {
+    const {
       input: { groupId },
     } = args
 
-    const userId = ctx.userId!
+    const userId = ctx.userId
+
+    if (!userId) {
+      return new Error("User not found!")
+    }
 
     const membership = await ctx.prisma.groupMembership.findUnique({
       where: {
@@ -217,7 +225,7 @@ export const GroupMembershipResolvers = {
   async __resolveReference(groupMembership: any, ctx: Context) {
     return ctx.prisma.groupMembership.findUnique({
       where: {
-        id: groupMembership.id
+        id: groupMembership.id,
       },
     })
   },
@@ -239,7 +247,7 @@ export const validateMembershipExists = async (
 ) => {
   const membership = await prisma.groupMembership.findUnique({
     where: {
-      id: membershipId
+      id: membershipId,
     },
   })
   if (!membership) {

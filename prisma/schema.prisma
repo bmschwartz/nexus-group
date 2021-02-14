@@ -57,11 +57,10 @@ model MemberSubscription {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   groupSubscriptionId String            @db.Uuid
   groupMembershipId   String            @db.Uuid
-  active              Boolean           @default(false)
   recurring           Boolean           @default(true)
   outstandingBalance  Float
-  startDate           DateTime          @default(now())
-  endDate             DateTime
+  startDate           DateTime?
+  endDate             DateTime?
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @default(now())
   groupSubscription   GroupSubscription @relation(fields: [groupSubscriptionId], references: [id])

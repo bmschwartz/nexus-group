@@ -207,6 +207,7 @@ type CreateGroupSubscriptionResult {
 ########################
 type MemberSubscription @key(fields: "id") {
   id: ID!
+  active: Boolean!
   membership: GroupMembership!
   groupSubscription: GroupSubscription!
   outstandingBalance: Float!
