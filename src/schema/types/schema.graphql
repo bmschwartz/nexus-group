@@ -55,7 +55,6 @@ input CreateGroupInput {
   telegram: String
   discord: String
   email: String
-  membershipLength: Int!
   membershipFee: Float!
   payInPlatform: Boolean!
   payoutCurrency: String

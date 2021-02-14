@@ -24,6 +24,6 @@ export function createContext({ req }: any): Context {
     prisma,
     userId,
     permissions,
-    messenger
+    messenger,
   }
 }

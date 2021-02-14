@@ -22,54 +22,52 @@ model Group {
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @default(now())
   members           GroupMembership[]
-  membershipOptions GroupMembershipOption[]
-  groupSubscription GroupSubscription
+  groupSubscription GroupSubscription?
 }
 
 model GroupMembership {
-  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  memberId  String           @db.Uuid
-  groupId   String           @db.Uuid
-  active    Boolean          @default(false)
-  role      MembershipRole   @default(MEMBER)
-  status    MembershipStatus @default(PENDING)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @default(now())
-  group     Group            @relation(fields: [groupId], references: [id])
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId      String              @db.Uuid
+  groupId       String              @db.Uuid
+  active        Boolean             @default(false)
+  role          MembershipRole      @default(MEMBER)
+  status        MembershipStatus    @default(PENDING)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @default(now())
+  group         Group               @relation(fields: [groupId], references: [id])
+  subscription  MemberSubscription?
 
   @@unique([memberId, groupId], name: "GroupMembership_memberId_groupId_key")
 }
 
-model GroupMembershipOption {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  groupId          String   @db.Uuid
-  membershipFee    Float
-  membershipLength Int
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @default(now())
-  group            Group    @relation(fields: [groupId], references: [id])
-}
-
 model GroupSubscription {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  groupId            String               @db.Uuid
-  price              Float
-  active             Boolean              @default(false)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @default(now())
-  group              Group                @relation(fields: [groupId], references: [id])
-  memberSubscription MemberSubscription[]
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupId             String               @db.Uuid
+  price               Float
+  active              Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now())
+  group               Group                @relation(fields: [groupId], references: [id])
+  memberSubscriptions MemberSubscription[]
+
+  @@unique([id, groupId], name: "GroupSubscription_id_groupId_key")
 }
 
 model MemberSubscription {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   groupSubscriptionId String            @db.Uuid
+  groupMembershipId   String            @db.Uuid
+  active              Boolean           @default(false)
+  recurring           Boolean           @default(true)
   outstandingBalance  Float
   startDate           DateTime          @default(now())
   endDate             DateTime
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @default(now())
   groupSubscription   GroupSubscription @relation(fields: [groupSubscriptionId], references: [id])
+  groupMembership     GroupMembership   @relation(fields: [groupMembershipId], references: [id])
+
+  @@unique([groupMembershipId, groupSubscriptionId], name: "MemberSubscription_groupMembershipId_groupSubscriptionId_key")
 }
 
 enum MembershipRole {

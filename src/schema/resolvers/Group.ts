@@ -48,7 +48,6 @@ export const GroupMutations = {
         telegram,
         discord,
         email,
-        membershipLength,
         membershipFee,
         payInPlatform,
         payoutCurrency,
@@ -92,10 +91,10 @@ export const GroupMutations = {
             role: MembershipRole.ADMIN,
           },
         },
-        membershipOptions: {
+        groupSubscription: {
           create: {
-            membershipFee,
-            membershipLength,
+            active: true,
+            price: membershipFee || 0,
           },
         },
       },
@@ -103,7 +102,7 @@ export const GroupMutations = {
   },
 
   async renameGroup(parent: any, args: any, ctx: Context) {
-    let {
+    const {
       input: { groupId },
     } = args
     const {
@@ -119,7 +118,7 @@ export const GroupMutations = {
   },
 
   async updateGroupDescription(parent: any, args: any, ctx: Context) {
-    let {
+    const {
       input: { groupId },
     } = args
     const {
