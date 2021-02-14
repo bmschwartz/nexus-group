@@ -58,6 +58,7 @@ model MemberSubscription {
   groupSubscriptionId String            @db.Uuid
   groupMembershipId   String            @db.Uuid
   recurring           Boolean           @default(true)
+  price               Float
   outstandingBalance  Float
   startDate           DateTime?
   endDate             DateTime?

@@ -211,6 +211,7 @@ type MemberSubscription @key(fields: "id") {
   membership: GroupMembership!
   groupSubscription: GroupSubscription!
   outstandingBalance: Float!
+  price: Float!
   recurring: Boolean!
   startDate: DateTime!
   endDate: DateTime!
