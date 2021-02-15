@@ -213,15 +213,15 @@ type MemberSubscription @key(fields: "id") {
   outstandingBalance: Float!
   price: Float!
   recurring: Boolean!
-  startDate: DateTime!
-  endDate: DateTime!
+  startDate: DateTime
+  endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
 input CreateMemberSubscriptionInput {
+  groupId: ID!
   membershipId: ID!
-  groupSubscriptionId: ID!
 }
 
 type CreateMemberSubscriptionResult {

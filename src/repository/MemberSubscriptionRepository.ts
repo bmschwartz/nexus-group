@@ -3,7 +3,7 @@ import {getGroupSubscription} from "./GroupSubscriptionRepository";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
-  groupSubscriptionId: string
+  groupId: string
 }
 
 export interface CreateMemberSubscriptionResult {
@@ -14,11 +14,20 @@ export interface CreateMemberSubscriptionResult {
 export async function createMemberSubscription(
   ctx: Context, input: CreateMemberSubscriptionInput,
 ): Promise<CreateMemberSubscriptionResult> {
-  const { membershipId, groupSubscriptionId } = input
+  const { membershipId, groupId } = input
+
+  const groupSubscription = await ctx.prisma.groupSubscription.findFirst({
+    where: { groupId, active: true },
+  })
+
+  if (!groupSubscription) {
+    return { success: false, error: "Group subscription does not exist!" }
+  }
+
   const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
     where: {
       MemberSubscription_groupMembershipId_groupSubscriptionId_key: {
-        groupSubscriptionId, groupMembershipId: membershipId,
+        groupSubscriptionId: groupSubscription.id, groupMembershipId: membershipId,
       },
     },
   })
@@ -27,14 +36,14 @@ export async function createMemberSubscription(
     return { success: false, error: "Subscription already exists!"}
   }
 
-  const groupSubscription = await getGroupSubscription(ctx, groupSubscriptionId)
-  if (!groupSubscription) {
-    return { success: false, error: "Group subscription does not exist!" }
-  }
-
   try {
     await ctx.prisma.memberSubscription.create({
-      data: {groupSubscriptionId, groupMembershipId: membershipId, outstandingBalance: groupSubscription.price },
+      data: {
+        groupSubscriptionId: groupSubscription.id,
+        groupMembershipId: membershipId,
+        price: groupSubscription.price,
+        outstandingBalance: groupSubscription.price
+      },
     })
   } catch (e) {
     console.error(e)

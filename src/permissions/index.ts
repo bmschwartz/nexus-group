@@ -1,6 +1,6 @@
 import { rule, shield, and, or } from "graphql-shield"
 import { Context } from "../context"
-import { validateActiveUserHasRoleAndStatus } from "../schema/resolvers/GroupMembership"
+import {validateActiveUserHasRoleAndStatus} from "../repository/GroupMembershipRepository";
 
 const isAuthenticated = rule()((parent, args, { userId }) => {
   return !!userId
