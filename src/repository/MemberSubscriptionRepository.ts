@@ -11,6 +11,15 @@ export interface CreateMemberSubscriptionResult {
   error?: string
 }
 
+export interface PayMemberSubscriptionInput {
+  subscriptionId: string
+}
+
+export interface PayMemberSubscriptionResult {
+  success: boolean
+  error?: string
+}
+
 export interface ActivateMemberSubscriptionInput {
   subscriptionId: string
 }
@@ -29,10 +38,10 @@ export interface CancelMemberSubscriptionResult {
   error?: string
 }
 
-export async function activateMemberSubscription(
+export async function payMemberSubscription(
   ctx: Context,
-  { subscriptionId }: ActivateMemberSubscriptionInput,
-): Promise<ActivateMemberSubscriptionResult> {
+  { subscriptionId }: PayMemberSubscriptionInput,
+): Promise<PayMemberSubscriptionResult> {
   const startDate = new Date()
   const endDate = new Date()
   endDate.setMonth(startDate.getMonth() + 1)
@@ -40,7 +49,22 @@ export async function activateMemberSubscription(
   try {
     await ctx.prisma.memberSubscription.update({
       where: {id: subscriptionId},
-      data: {outstandingBalance: 0, startDate, endDate},
+      data: {outstandingBalance: 0, startDate, endDate, recurring: true},
+    })
+  } catch (e) {
+    return { success: false, error: "Could not pay subscription" }
+  }
+  return { success: true }
+}
+
+export async function activateMemberSubscription(
+  ctx: Context,
+  { subscriptionId }: ActivateMemberSubscriptionInput,
+): Promise<ActivateMemberSubscriptionResult> {
+  try {
+    await ctx.prisma.memberSubscription.update({
+      where: {id: subscriptionId},
+      data: { recurring: true },
     })
   } catch (e) {
     return { success: false, error: "Could not activate subscription" }
@@ -95,7 +119,7 @@ export async function createMemberSubscription(
         groupSubscriptionId: groupSubscription.id,
         groupMembershipId: membershipId,
         price: groupSubscription.price,
-        outstandingBalance: groupSubscription.price
+        outstandingBalance: groupSubscription.price,
       },
     })
   } catch (e) {

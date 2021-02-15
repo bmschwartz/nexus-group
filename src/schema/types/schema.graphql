@@ -33,8 +33,9 @@ extend type Mutation {
   createGroupSubscription(input: CreateGroupSubscriptionInput!): CreateGroupSubscriptionResult
 
   # MemberSubscription
-  activateMemberSubscription(input: ActivateMemberSubscriptionInput!): ActivateMemberSubscriptionResult
+  payMemberSubscription(input: PayMemberSubscriptionInput!): PayMemberSubscriptionResult
   cancelMemberSubscription(input: CancelMemberSubscriptionInput!): CancelMemberSubscriptionResult
+  activateMemberSubscription(input: ActivateMemberSubscriptionInput!): ActivateMemberSubscriptionResult
 }
 
 ########################
@@ -218,6 +219,15 @@ type MemberSubscription @key(fields: "id") {
   endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+input PayMemberSubscriptionInput {
+  subscriptionId: ID!
+}
+
+type PayMemberSubscriptionResult {
+  success: Boolean!
+  error: String
 }
 
 input ActivateMemberSubscriptionInput {
