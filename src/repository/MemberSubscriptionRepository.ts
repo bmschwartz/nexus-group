@@ -11,6 +11,59 @@ export interface CreateMemberSubscriptionResult {
   error?: string
 }
 
+export interface ActivateMemberSubscriptionInput {
+  subscriptionId: string
+}
+
+export interface ActivateMemberSubscriptionResult {
+  success: boolean
+  error?: string
+}
+
+export interface CancelMemberSubscriptionInput {
+  subscriptionId: string
+}
+
+export interface CancelMemberSubscriptionResult {
+  success: boolean
+  error?: string
+}
+
+export async function activateMemberSubscription(
+  ctx: Context,
+  { subscriptionId }: ActivateMemberSubscriptionInput,
+): Promise<ActivateMemberSubscriptionResult> {
+  const startDate = new Date()
+  const endDate = new Date()
+  endDate.setMonth(startDate.getMonth() + 1)
+
+  try {
+    await ctx.prisma.memberSubscription.update({
+      where: {id: subscriptionId},
+      data: {outstandingBalance: 0, startDate, endDate},
+    })
+  } catch (e) {
+    return { success: false, error: "Could not activate subscription" }
+  }
+  return { success: true }
+}
+
+export async function cancelMemberSubscription(
+  ctx: Context,
+  { subscriptionId }: CancelMemberSubscriptionInput,
+): Promise<CancelMemberSubscriptionResult> {
+  try {
+    await ctx.prisma.memberSubscription.update({
+      where: {id: subscriptionId},
+      data: {recurring: false},
+    })
+  } catch (e) {
+    return { success: false, error: "Could not cancel subscription" }
+  }
+
+  return { success: true }
+}
+
 export async function createMemberSubscription(
   ctx: Context, input: CreateMemberSubscriptionInput,
 ): Promise<CreateMemberSubscriptionResult> {

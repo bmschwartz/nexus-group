@@ -2,17 +2,26 @@ import { Context } from "../../context"
 
 // @ts-ignore
 import {
-  createMemberSubscription,
+  activateMemberSubscription,
+  cancelMemberSubscription,
   subscriptionIsActive,
 } from "../../repository/MemberSubscriptionRepository"
 
 export const MemberSubscriptionMutations = {
-  async createMemberSubscription(_: any, args: any, ctx: Context) {
+  async activateMemberSubscription(_: any, args: any, ctx: Context) {
     const {
-      input: { membershipId, groupId },
+      input: { subscriptionId },
     } = args
 
-    return createMemberSubscription(ctx, { membershipId, groupId })
+    return activateMemberSubscription(ctx, { subscriptionId })
+  },
+
+  async cancelMemberSubscription(_: any, args: any, ctx: Context) {
+    const {
+      input: { subscriptionId },
+    } = args
+
+    return cancelMemberSubscription(ctx, { subscriptionId })
   },
 }
 
