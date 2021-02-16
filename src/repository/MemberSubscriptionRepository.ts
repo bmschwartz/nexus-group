@@ -48,7 +48,7 @@ export async function payMemberSubscription(
       data: { paymentStatus: PaymentStatus.PENDING },
     })
 
-    await ctx.payment.sendSubscriptionInvoice(subscriptionId)
+    await ctx.subscription.sendSubscriptionInvoice(subscriptionId)
 
   } catch (e) {
     return { success: false, error: "Could not send subscription invoice" }

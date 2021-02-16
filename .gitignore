@@ -8,6 +8,8 @@ lib-cov
 *.gz
 *.swp
 
+BitPay.config.json
+
 pids
 logs
 results
