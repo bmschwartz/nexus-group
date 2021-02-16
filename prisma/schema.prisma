@@ -74,7 +74,7 @@ model SubscriptionInvoice {
   subscriptionId  String             @db.Uuid
   paidAmount      Float
   chargedAmount   Float
-  paymentStatus   PaymentStatus?
+  paymentStatus   PaymentStatus
 
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @default(now())
