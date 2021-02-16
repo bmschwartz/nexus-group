@@ -76,6 +76,8 @@ model SubscriptionInvoice {
   chargedAmount   Float
   paymentStatus   PaymentStatus
 
+  periodStart     DateTime?
+  periodEnd       DateTime?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @default(now())
 
@@ -102,5 +104,6 @@ enum PayoutCurrency {
 
 enum PaymentStatus {
   PENDING
-  APPROVED
+  CONFIRMED
+  COMPLETED
 }

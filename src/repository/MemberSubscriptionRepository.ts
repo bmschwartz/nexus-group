@@ -1,5 +1,6 @@
 import { Context } from "../context";
-import {PrismaClient, PaymentStatus} from "@prisma/client";
+import {PrismaClient} from "@prisma/client";
+import {createInvoice} from "./SubscriptionInvoiceRepository";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
@@ -43,10 +44,10 @@ export async function payMemberSubscription(
   { subscriptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
   try {
-    await ctx.prisma.memberSubscription.update({
-      where: { id: subscriptionId },
-      data: { paymentStatus: PaymentStatus.PENDING },
-    })
+    // await ctx.prisma.memberSubscription.update({
+    //   where: { id: subscriptionId },
+    //   data: { paymentStatus: PaymentStatus.PENDING },
+    // })
 
     await ctx.subscription.sendSubscriptionInvoice(subscriptionId)
 
@@ -57,14 +58,10 @@ export async function payMemberSubscription(
 }
 
 export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
-  const startDate = new Date()
-  const endDate = new Date()
-  endDate.setMonth(startDate.getMonth() + 1)
-
   try {
     await prisma.memberSubscription.update({
       where: {id: subscriptionId},
-      data: {outstandingBalance: 0, startDate, endDate, recurring: true},
+      data: { recurring: true },
     })
   } catch (e) {
     return { success: false, error: "Could not pay subscription" }
@@ -116,7 +113,7 @@ export async function createMemberSubscription(
     return { success: false, error: "Group subscription does not exist!" }
   }
 
-  const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
+  let memberSubscription = await ctx.prisma.memberSubscription.findUnique({
     where: {
       MemberSubscription_groupMembershipId_groupSubscriptionId_key: {
         groupSubscriptionId: groupSubscription.id, groupMembershipId: membershipId,
@@ -129,17 +126,22 @@ export async function createMemberSubscription(
   }
 
   try {
-    await ctx.prisma.memberSubscription.create({
+    memberSubscription = await ctx.prisma.memberSubscription.create({
       data: {
         groupSubscriptionId: groupSubscription.id,
         groupMembershipId: membershipId,
-        price: groupSubscription.price,
-        outstandingBalance: groupSubscription.price,
       },
     })
   } catch (e) {
     console.error(e)
     return { success: false, error: "Error creating Subscription" }
+  }
+
+  if (memberSubscription) {
+    await createInvoice(ctx, {
+      subscriptionId: memberSubscription.id,
+      price: groupSubscription.price,
+    })
   }
 
   return { success: true }
@@ -156,7 +158,6 @@ export async function subscriptionIsActive(ctx: Context, subscriptionId: string)
   const activeChecks = [
     memberSubscription.startDate && memberSubscription.startDate < now,
     memberSubscription.endDate && memberSubscription.endDate > now,
-    memberSubscription.outstandingBalance === 0,
   ]
 
   return activeChecks.every(Boolean)
