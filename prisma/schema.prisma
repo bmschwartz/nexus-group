@@ -54,21 +54,32 @@ model GroupSubscription {
 }
 
 model MemberSubscription {
-  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  groupSubscriptionId String            @db.Uuid
-  groupMembershipId   String            @db.Uuid
-  recurring           Boolean           @default(true)
-  paymentStatus       PaymentStatus?
-  price               Float
-  outstandingBalance  Float
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  groupSubscriptionId String                @db.Uuid
+  groupMembershipId   String                @db.Uuid
+  recurring           Boolean               @default(true)
   startDate           DateTime?
   endDate             DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @default(now())
-  groupSubscription   GroupSubscription @relation(fields: [groupSubscriptionId], references: [id])
-  groupMembership     GroupMembership   @relation(fields: [groupMembershipId], references: [id])
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now())
+  groupSubscription   GroupSubscription     @relation(fields: [groupSubscriptionId], references: [id])
+  groupMembership     GroupMembership       @relation(fields: [groupMembershipId], references: [id])
+  invoices            SubscriptionInvoice[]
 
   @@unique([groupMembershipId, groupSubscriptionId], name: "MemberSubscription_groupMembershipId_groupSubscriptionId_key")
+}
+
+model SubscriptionInvoice {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId  String             @db.Uuid
+  paidAmount      Float
+  chargedAmount   Float
+  paymentStatus   PaymentStatus?
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @default(now())
+
+  subscription    MemberSubscription @relation(fields: [subscriptionId], references: [id])
 }
 
 enum MembershipRole {
