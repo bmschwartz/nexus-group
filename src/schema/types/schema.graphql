@@ -211,14 +211,20 @@ type MemberSubscription @key(fields: "id") {
   id: ID!
   active: Boolean!
   membership: GroupMembership!
-  groupSubscription: GroupSubscription!
-  outstandingBalance: Float!
   price: Float!
+  outstandingBalance: Float!
+  groupSubscription: GroupSubscription!
+  paymentStatus: PaymentStatus
   recurring: Boolean!
   startDate: DateTime
   endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
 }
 
 input PayMemberSubscriptionInput {

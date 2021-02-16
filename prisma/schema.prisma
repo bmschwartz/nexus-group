@@ -58,6 +58,7 @@ model MemberSubscription {
   groupSubscriptionId String            @db.Uuid
   groupMembershipId   String            @db.Uuid
   recurring           Boolean           @default(true)
+  paymentStatus       PaymentStatus?
   price               Float
   outstandingBalance  Float
   startDate           DateTime?
@@ -86,4 +87,9 @@ enum PayoutCurrency {
   BTC
   ETH
   LTC
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
 }

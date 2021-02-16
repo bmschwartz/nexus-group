@@ -1,5 +1,5 @@
 import { Context } from "../context";
-import {getGroupSubscription} from "./GroupSubscriptionRepository";
+import {PrismaClient, PaymentStatus} from "@prisma/client";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
@@ -42,12 +42,27 @@ export async function payMemberSubscription(
   ctx: Context,
   { subscriptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
+  try {
+    await ctx.prisma.memberSubscription.update({
+      where: { id: subscriptionId },
+      data: { paymentStatus: PaymentStatus.PENDING },
+    })
+
+    await ctx.payment.sendSubscriptionInvoice(subscriptionId)
+
+  } catch (e) {
+    return { success: false, error: "Could not send subscription invoice" }
+  }
+  return { success: true }
+}
+
+export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
   const startDate = new Date()
   const endDate = new Date()
   endDate.setMonth(startDate.getMonth() + 1)
 
   try {
-    await ctx.prisma.memberSubscription.update({
+    await prisma.memberSubscription.update({
       where: {id: subscriptionId},
       data: {outstandingBalance: 0, startDate, endDate, recurring: true},
     })

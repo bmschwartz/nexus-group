@@ -56,7 +56,9 @@ export const createMembership = async (
     return { success: false, error: "Error creating the membership" }
   }
 
-  const createSubscriptionResult = await createMemberSubscription(ctx, {groupId, membershipId: membership.id})
+  const createSubscriptionResult = await createMemberSubscription(ctx,
+    { groupId, membershipId: membership.id },
+  )
   if (!createSubscriptionResult.success) {
     return createSubscriptionResult
   }
