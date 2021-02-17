@@ -1,5 +1,6 @@
 import { Context } from "../context";
-import {PaymentStatus, SubscriptionInvoice} from "@prisma/client";
+import {PrismaClient, PaymentStatus, SubscriptionInvoice} from "@prisma/client";
+import {SubscriptionClient} from "../services/subscription";
 
 export interface CreateSubscriptionInvoiceInput {
   subscriptionId: string
@@ -15,13 +16,14 @@ export interface LatestInvoicePaidInput {
 }
 
 export async function createInvoice(
-  ctx: Context,
+  prisma: PrismaClient,
+  subscriptionClient: SubscriptionClient,
   { subscriptionId, price }: CreateSubscriptionInvoiceInput,
 ): Promise<SubscriptionInvoice | null> {
   let invoice
 
   try {
-    invoice = await ctx.prisma.subscriptionInvoice.create({
+    invoice = await prisma.subscriptionInvoice.create({
       data: {
         subscriptionId,
         chargedAmount: price,
@@ -30,9 +32,10 @@ export async function createInvoice(
       },
     })
 
-    await ctx.subscription.sendSubscriptionInvoice(invoice.id)
+    await subscriptionClient.sendSubscriptionInvoice(invoice.id)
 
   } catch (e) {
+    console.error("Error creating invoice to send!", e)
     return null
   }
 

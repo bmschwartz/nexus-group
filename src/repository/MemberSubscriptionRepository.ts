@@ -138,7 +138,7 @@ export async function createMemberSubscription(
   }
 
   if (memberSubscription) {
-    await createInvoice(ctx, {
+    await createInvoice(ctx.prisma, ctx.subscription, {
       subscriptionId: memberSubscription.id,
       price: groupSubscription.price,
     })
