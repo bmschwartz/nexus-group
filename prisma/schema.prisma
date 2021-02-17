@@ -71,12 +71,16 @@ model MemberSubscription {
 model SubscriptionInvoice {
   id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   subscriptionId  String             @db.Uuid
-  paidAmount      Float
-  chargedAmount   Float
+  amountPaid      Float
+  amountCharged   Float
   paymentStatus   PaymentStatus
+
+  invoiceURL      String?
+  remoteInvoiceId String?
 
   periodStart     DateTime?
   periodEnd       DateTime?
+  expiresAt       DateTime?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @default(now())
 

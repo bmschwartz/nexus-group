@@ -1,9 +1,9 @@
 import * as dotenv from "dotenv"
-import schedule, {Job} from "node-schedule"
-import {Client as BitpayClient, Models} from "bitpay-sdk"
-import {PrismaClient, PaymentStatus, SubscriptionInvoice} from "@prisma/client";
-import {MessageClient} from "../messenger";
-import {createInvoice} from "../../repository/SubscriptionInvoiceRepository";
+import schedule, { Job } from "node-schedule"
+import { Client as BitpayClient, Models, Currency } from "bitpay-sdk"
+import { PrismaClient, PaymentStatus, SubscriptionInvoice } from "@prisma/client";
+import { MessageClient } from "../messenger";
+import { createInvoice } from "../../repository/SubscriptionInvoiceRepository";
 
 dotenv.config()
 
@@ -15,6 +15,8 @@ interface SubscriptionClientProps {
 const NEW_INVOICE_LEAD_TIME_DAYS = 7
 
 const configFilePath = process.env.BITPAY_CONFIG_FILE
+
+const PLATFORM_SUBSCRIPTION_FEE_USD = 25
 
 if (!configFilePath) {
   console.error("Unable to load BitPay config file")
@@ -39,8 +41,16 @@ export class SubscriptionClient {
     )
   }
 
-  async sendSubscriptionInvoice(subscriptionId: string) {
-    console.log("Sending subscription invoice to ", subscriptionId)
+  async sendSubscriptionInvoice(invoice: SubscriptionInvoice) {
+    console.log("Sending subscription invoice to ", invoice.id)
+    const invoiceData = new Models.Invoice(invoice.chargedAmount, Currency.USD);
+    invoiceData.orderId = invoice.id
+    invoiceData.notificationEmail = "ben@tradenexus.io"
+    invoiceData.transactionSpeed = "medium"
+    invoiceData.extendedNotifications = true
+
+    const result = await this._bitpayClient.CreateInvoice(invoiceData);
+    console.log(result)
   }
 
   determineInvoicesToSend(prisma: PrismaClient) {
@@ -60,9 +70,9 @@ export class SubscriptionClient {
         subscriptionsEndingSoonWithoutInvoice = await prisma.memberSubscription.findMany({
           where: {
             id: { notIn: subscriptionIdsForInvoices },
-            AND: [{endDate: {gte: new Date()}}, {endDate: {lte: subscriptionEndDateThreshold}}],
+            AND: [{ endDate: { gte: new Date() } }, { endDate: { lte: subscriptionEndDateThreshold } }],
           },
-          select: {id: true, groupSubscription: {select: {price: true}}},
+          select: { id: true, groupSubscription: { select: { price: true } } },
         })
       } catch (e) {
         console.error(e)

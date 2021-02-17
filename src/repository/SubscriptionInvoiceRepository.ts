@@ -31,12 +31,20 @@ export async function createInvoice(
         paymentStatus: PaymentStatus.PENDING,
       },
     })
-
-    await subscriptionClient.sendSubscriptionInvoice(invoice.id)
-
   } catch (e) {
     console.error("Error creating invoice to send!", e)
     return null
+  }
+
+  if (invoice) {
+    try {
+      await subscriptionClient.sendSubscriptionInvoice(invoice)
+    } catch (e) {
+      console.error(e)
+      await prisma.subscriptionInvoice.delete({
+        where: { id: invoice.id },
+      })
+    }
   }
 
   return invoice

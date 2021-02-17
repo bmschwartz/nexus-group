@@ -44,12 +44,23 @@ export async function payMemberSubscription(
   { subscriptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
   try {
-    // await ctx.prisma.memberSubscription.update({
-    //   where: { id: subscriptionId },
-    //   data: { paymentStatus: PaymentStatus.PENDING },
-    // })
+    const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
+      where: { id: subscriptionId},
+    })
 
-    await ctx.subscription.sendSubscriptionInvoice(subscriptionId)
+    if (!memberSubscription) {
+      return { success: false, error: "Subscription does not exist" }
+    }
+
+    const groupSubscription = await ctx.prisma.groupSubscription.findUnique({
+      where: {id: memberSubscription.groupSubscriptionId},
+    })
+
+    if (!groupSubscription) {
+      return { success: false, error: "Could not find matching group subscription" }
+    }
+
+    await createInvoice(ctx.prisma, ctx.subscription, {subscriptionId, price: groupSubscription.price})
 
   } catch (e) {
     return { success: false, error: "Could not send subscription invoice" }
