@@ -1,20 +1,20 @@
 import { PrismaClient } from "@prisma/client"
 import {MessageClient} from "./services/messenger";
-import {SubscriptionClient} from "./services/subscription";
+import {BillingClient} from "./services/billing";
 import { initSettings} from "./settings";
 
 initSettings()
 
 export const prisma = new PrismaClient()
 export const messenger = new MessageClient(prisma)
-export const subscription = new SubscriptionClient({ prisma, messenger })
+export const billing = new BillingClient({ prisma, messenger })
 
 export interface Context {
   userId?: string
   permissions: string[]
   prisma: PrismaClient
   messenger: MessageClient
-  subscription: SubscriptionClient
+  billing: BillingClient
 }
 
 export function createContext({ req }: any): Context {
@@ -28,6 +28,6 @@ export function createContext({ req }: any): Context {
     userId,
     permissions,
     messenger,
-    subscription,
+    billing,
   }
 }
