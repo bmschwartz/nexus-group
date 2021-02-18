@@ -211,20 +211,14 @@ type MemberSubscription @key(fields: "id") {
   id: ID!
   active: Boolean!
   membership: GroupMembership!
-  price: Float!
-  outstandingBalance: Float!
   groupSubscription: GroupSubscription!
-  paymentStatus: PaymentStatus
+  currentPrice: Float
   recurring: Boolean!
   startDate: DateTime
   endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum PaymentStatus {
-  PENDING
-  APPROVED
+  bills: [SubscriptionBill!]!
 }
 
 input PayMemberSubscriptionInput {
@@ -252,6 +246,35 @@ input CancelMemberSubscriptionInput {
 type CancelMemberSubscriptionResult {
   success: Boolean!
   error: String
+}
+
+########################
+#  SubscriptionBill
+########################
+type SubscriptionBill @key(fields: "id") {
+  id: ID!
+  email: String!
+  amountPaid: Float!
+  amountCharged: Float!
+  billStatus: BillStatus!
+  subscription: MemberSubscription!
+
+  remoteBillId: ID
+  billToken: ID
+
+  periodStart: DateTime
+  periodEnd: DateTime
+  expiresAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum BillStatus {
+  DRAFT
+  SENT
+  NEW
+  PAID
+  COMPLETE
 }
 
 ########################

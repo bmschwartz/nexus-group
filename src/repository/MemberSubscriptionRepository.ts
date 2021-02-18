@@ -1,5 +1,5 @@
 import { Context } from "../context";
-import {PrismaClient} from "@prisma/client";
+import {PrismaClient, SubscriptionBill} from "@prisma/client";
 import {createBill} from "./SubscriptionBillRepository";
 
 export interface CreateMemberSubscriptionInput {
@@ -19,7 +19,6 @@ export interface PayMemberSubscriptionInput {
 export interface PayMemberSubscriptionResult {
   success: boolean
   error?: string
-  invoiceURL?: string
 }
 
 export interface ActivateMemberSubscriptionInput {
@@ -44,8 +43,6 @@ export async function payMemberSubscription(
   ctx: Context,
   { subscriptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
-  let invoice
-
   try {
     const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
       where: { id: subscriptionId},
@@ -63,13 +60,13 @@ export async function payMemberSubscription(
       return { success: false, error: "Could not find matching group subscription" }
     }
 
-    invoice = await createBill(ctx.prisma, ctx.billing, {subscriptionId, groupSubscription})
+    await createBill(ctx.prisma, ctx.billing, {subscriptionId, groupSubscription})
 
   } catch (e) {
-    return { success: false, error: "Could not submit subscription invoice" }
+    return { success: false, error: "Could not submit subscription bill" }
   }
 
-  return { success: true, invoiceURL: invoice.invoiceURL }
+  return { success: true }
 }
 
 export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
@@ -176,4 +173,10 @@ export async function subscriptionIsActive(ctx: Context, subscriptionId: string)
   ]
 
   return activeChecks.every(Boolean)
+}
+
+export async function getSubscriptionBills(ctx: Context, subscriptionId: string): Promise<SubscriptionBill[]> {
+  return ctx.prisma.subscriptionBill.findMany({
+    where: { subscriptionId },
+  })
 }
