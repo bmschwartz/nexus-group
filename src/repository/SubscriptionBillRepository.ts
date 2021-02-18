@@ -1,6 +1,6 @@
 import { Context } from "../context";
-import {PrismaClient, BillStatus, SubscriptionBill, GroupSubscription} from "@prisma/client";
-import {BillingClient, PLATFORM_SUBSCRIPTION_FEE_USD, SendBillResponse} from "../services/billing";
+import { PrismaClient, BillStatus, SubscriptionBill, GroupSubscription } from "@prisma/client";
+import { BillingClient, PLATFORM_SUBSCRIPTION_FEE_USD, SendBillResponse } from "../services/billing";
 
 export interface CreateSubscriptionBillInput {
   subscriptionId: string
@@ -25,7 +25,7 @@ export async function createBill(
 
   try {
     memberSubscription = await prisma.memberSubscription.findUnique({
-      where: {id: subscriptionId},
+      where: { id: subscriptionId },
     })
   } catch (e) {
     console.error("Error getting subscription", e)
@@ -54,10 +54,13 @@ export async function createBill(
     return null
   }
 
-  let billResponse: SendBillResponse
+  let billResponse: SendBillResponse | null
   if (bill) {
     try {
       billResponse = await billingClient.sendSubscriptionBill("ben@tradenexus.io", "Cool Group", groupSubscription, bill)
+      if (!billResponse) {
+        throw new Error(`Error sending subscription bill ${subscriptionId}`)
+      }
       const { remoteBillId, billToken, billStatus } = billResponse
       bill = await prisma.subscriptionBill.update({
         where: { id: bill.id },
@@ -78,7 +81,7 @@ export async function getPendingBill(
   ctx: Context,
   { subscriptionId }: GetPendingBillInput,
 ): Promise<SubscriptionBill | null> {
-  let bill
+  let bill: SubscriptionBill | null
 
   try {
     bill = await ctx.prisma.subscriptionBill.findFirst({

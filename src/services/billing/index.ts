@@ -1,10 +1,15 @@
 import * as dotenv from "dotenv"
 import schedule from "node-schedule"
-import { Client as BitpayClient, Models, Currency } from "bitpay-sdk"
 import { PrismaClient, SubscriptionBill, GroupSubscription, BillStatus } from "@prisma/client";
 import { MessageClient } from "../messenger";
 import { createBill } from "../../repository/SubscriptionBillRepository";
-import {convertToLocalBillStatus, getAllSettledResults} from "../../helper"
+import { convertToLocalBillStatus, getAllSettledResults } from "../../helper"
+import {
+  Client as BitpayClient,
+  Env as BitPayEnv,
+  Tokens, Models,
+  Currency
+} from "bitpay-sdk";
 
 dotenv.config()
 
@@ -23,10 +28,11 @@ const SUBSCRIPTION_DURATION_MONTHS = 1
 const NEW_BILL_LEAD_TIME_DAYS = 7
 export const PLATFORM_SUBSCRIPTION_FEE_USD = 2
 
-const configFilePath = process.env.BITPAY_CONFIG_FILE
+const bitpayToken = process.env.BITPAY_TOKEN
+const bitpayPrivateKey = process.env.BITPAY_PRIVATE_KEY
 
-if (!configFilePath) {
-  console.error("Unable to load BitPay config file")
+if (!bitpayToken || !bitpayPrivateKey) {
+  console.error("Unable to load BitPay token or key")
   process.exit(1)
 }
 
@@ -38,9 +44,17 @@ export class BillingClient {
   _updateBillStatusesJob: schedule.Job
 
   constructor({ prisma, messenger }: SubscriptionClientProps) {
+    let tokens = Tokens
+    tokens.merchant = bitpayToken as string
+
     this._db = prisma
     this._messenger = messenger
-    this._bitpayClient = new BitpayClient(configFilePath);
+    this._bitpayClient = new BitpayClient(
+      "",
+      BitPayEnv.Test,
+      bitpayPrivateKey as string,
+      tokens
+    );
 
     this._determineBillsJob = schedule.scheduleJob(
       "determineBillsToSend",
@@ -60,22 +74,34 @@ export class BillingClient {
     groupName: string,
     groupSubscription: GroupSubscription,
     bill: SubscriptionBill,
-  ): Promise<SendBillResponse> {
+  ): Promise<SendBillResponse | null> {
     const billItems: Models.Item[] = [
       { id: `${bill.id}_membership`, description: `${groupName} Membership`, quantity: 1, price: groupSubscription.price },
       { id: `${bill.id}_platform`, description: `Trade Nexus Fee`, quantity: 1, price: PLATFORM_SUBSCRIPTION_FEE_USD },
     ]
 
     const billData = new Models.Bill(bill.id, Currency.USD, "schwartz.ben0@gmail.com", billItems);
-    billData.cc = "stgben@gmail.com"
+    billData.cc = ["stgben@gmail.com"]
 
-    const createdBill = await this._bitpayClient.CreateBill(billData);
-    const deliveryResult = await this._bitpayClient.DeliverBill(createdBill.id, createdBill.token)
+    let createdBill: Models.BillInterface
+    try {
+      createdBill = await this._bitpayClient.CreateBill(billData);
+    } catch (e) {
+      console.error("Unable to create a bill for ", bill.subscriptionId)
+      return null
+    }
+    const { id: remoteBillId, token: billToken } = createdBill
+    if (remoteBillId === null || billToken === null) {
+      console.error("Bill ID or Bill Token are null for ", bill.subscriptionId)
+      return null
+    }
+
+    const deliveryResult = await this._bitpayClient.DeliverBill(remoteBillId, billToken)
     console.log(deliveryResult)
 
     return {
-      remoteBillId: createdBill.id,
-      billToken: createdBill.token,
+      billToken,
+      remoteBillId,
       billStatus: BillStatus.DRAFT,
     }
   }
@@ -126,7 +152,7 @@ export class BillingClient {
 
   async localIncompleteBillIds(prisma: PrismaClient): Promise<string[]> {
     const localIncompleteBills = await prisma.subscriptionBill.findMany({
-      where: { billStatus: { not: { equals: BillStatus.COMPLETE }} },
+      where: { billStatus: { not: { equals: BillStatus.COMPLETE } } },
       select: { remoteBillId: true },
     })
 
@@ -150,7 +176,19 @@ export class BillingClient {
   }
 
   async updateBill(remoteBillId: string) {
-    const remoteBill = await this._bitpayClient.GetBill(remoteBillId)
+    let remoteBill: Models.BillInterface
+    try {
+      remoteBill = await this._bitpayClient.GetBill(remoteBillId)
+    } catch (e) {
+      console.error("Failed to fetch remote bill ", remoteBillId);
+      return
+    }
+
+    if (!remoteBill.status) {
+      console.error("Remote bill status is null ", remoteBillId);
+      return
+    }
+
     const localStatus = convertToLocalBillStatus(remoteBill.status)
     if (!localStatus) {
       console.error("Could not convert remote bill status to local")
