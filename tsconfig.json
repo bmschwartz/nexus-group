@@ -18,7 +18,12 @@
     "noUnusedParameters": false,
     "noUnusedLocals": false,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2017", "esnext.asynciterable", "dom"],
+    "lib": [
+      "es2017",
+      "esnext.asynciterable",
+      "dom",
+      "es2020.promise"
+    ],
     "types": ["node", "apollo-env"],
     "jsx": "react",
     "baseUrl": ".",

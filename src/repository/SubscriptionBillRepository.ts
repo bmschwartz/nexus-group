@@ -21,12 +21,33 @@ export async function createBill(
   { subscriptionId, groupSubscription }: CreateSubscriptionBillInput,
 ): Promise<SubscriptionBill | null> {
   let bill
+  let memberSubscription
+
+  try {
+    memberSubscription = await prisma.memberSubscription.findUnique({
+      where: {id: subscriptionId},
+    })
+  } catch (e) {
+    console.error("Error getting subscription", e)
+  }
+
+  if (!memberSubscription) {
+    console.error("Could not find subscription when trying to createBill!")
+    return null
+  }
 
   try {
     const totalCost = groupSubscription.price + PLATFORM_SUBSCRIPTION_FEE_USD
 
     bill = await prisma.subscriptionBill.create({
-      data: { email: "ben@tradenexus.io", subscriptionId, amountCharged: totalCost, amountPaid: 0, billStatus: BillStatus.DRAFT },
+      data: {
+        email: "ben@tradenexus.io",
+        subscriptionId,
+        amountCharged: totalCost,
+        amountPaid: 0,
+        periodStart: memberSubscription.endDate,
+        billStatus: BillStatus.DRAFT,
+      },
     })
   } catch (e) {
     console.error("Error creating bill to send!", e)
@@ -37,10 +58,10 @@ export async function createBill(
   if (bill) {
     try {
       billResponse = await billingClient.sendSubscriptionBill("ben@tradenexus.io", "Cool Group", groupSubscription, bill)
-      const { remoteBillId } = billResponse
+      const { remoteBillId, billToken, billStatus } = billResponse
       bill = await prisma.subscriptionBill.update({
         where: { id: bill.id },
-        data: { remoteBillId },
+        data: { remoteBillId, billToken, billStatus },
       })
     } catch (e) {
       console.error(e)
