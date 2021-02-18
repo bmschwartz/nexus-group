@@ -1,0 +1,4 @@
+[submodule "nodejs-bitpay-client"]
+	path = nodejs-bitpay-client
+	url = https://github.com/TradeNexus/nodejs-bitpay-client.git
+	branch = master
