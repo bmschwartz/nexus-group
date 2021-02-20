@@ -1,5 +1,6 @@
 import {GroupMembership, MembershipRole, MembershipStatus, PrismaClient} from "@prisma/client";
 import { Context } from "../context";
+import {logger} from "../logger";
 
 export interface CreateGroupMembershipInput {
   groupId: string
@@ -14,14 +15,20 @@ export interface CreateGroupMembershipResult {
 }
 
 export const myMembership = async (ctx: Context, memberId: string, groupId: string): Promise<GroupMembership | null> => {
-  return ctx.prisma.groupMembership.findUnique({
-    where: {
-      GroupMembership_memberId_groupId_key: {
-        memberId,
-        groupId,
+  try {
+    return ctx.prisma.groupMembership.findUnique({
+      where: {
+        GroupMembership_memberId_groupId_key: {
+          memberId,
+          groupId,
+        },
       },
-    },
-  })
+    })
+  } catch (e) {
+    logger.info({ message: "[myMembership] Error getting membership", groupId, memberId })
+  }
+
+  return null
 }
 
 export const createMembership = async (
@@ -103,8 +110,5 @@ export const validateActiveUserHasRoleAndStatus = async (
     authorized = authorized && statuses.includes(groupMembership.status)
   }
 
-  if (!authorized) {
-    return new Error("Not Authorized")
-  }
-  return null
+  return authorized
 }

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 import { Context } from "../../context"
 import {createMembership, myMembership, validateMembershipExists} from "../../repository/GroupMembershipRepository";
+import {logger} from "../../logger";
 
 export const GroupMembershipQuery = {
   async membership(_: any, args: any, ctx: Context) {
@@ -39,7 +40,11 @@ export const GroupMembershipQuery = {
       where.status = { in: statuses }
     }
 
-    return ctx.prisma.groupMembership.findMany({ where })
+    try {
+      return ctx.prisma.groupMembership.findMany({ where })
+    } catch (e) {
+      logger.info({ message: "[myMemberships] Unable to get GroupMemberships", where })
+    }
   },
 
   async groupMembers(_: any, args: any, ctx: Context) {
@@ -67,7 +72,7 @@ export const GroupMembershipQuery = {
 export const GroupMembershipMutations = {
   async createMembership(_: any, args: any, ctx: Context) {
     const {
-      input: { groupId, memberId, role, status },
+      input: {groupId, memberId, role, status},
     } = args
 
     return createMembership(ctx, {groupId, memberId, role, status})
@@ -75,7 +80,7 @@ export const GroupMembershipMutations = {
 
   async updateMembershipRole(_: any, args: any, ctx: Context) {
     const {
-      input: { membershipId, role },
+      input: {membershipId, role},
     } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
@@ -87,13 +92,13 @@ export const GroupMembershipMutations = {
       where: {
         id: membershipId,
       },
-      data: { role },
+      data: {role},
     })
   },
 
   async updateMembershipStatus(_: any, args: any, ctx: Context) {
     const {
-      input: { membershipId, status },
+      input: {membershipId, status},
     } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
@@ -105,13 +110,13 @@ export const GroupMembershipMutations = {
       where: {
         id: membershipId,
       },
-      data: { status },
+      data: {status},
     })
   },
 
   async updateMembershipActive(_: any, args: any, ctx: Context) {
     const {
-      input: { membershipId, active },
+      input: {membershipId, active},
     } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
@@ -123,18 +128,18 @@ export const GroupMembershipMutations = {
       where: {
         id: membershipId,
       },
-      data: { active },
+      data: {active},
     })
   },
 
   async deleteMembership(_: any, args: any, ctx: Context) {
     const {
-      input: { membershipId },
+      input: {membershipId},
     } = args
 
     const membership = await validateMembershipExists(ctx.prisma, membershipId)
     if (membership instanceof Error) {
-      return { success: false, error: "Membership does not exist" }
+      return {success: false, error: "Membership does not exist"}
     }
 
     const deletedMembership = await ctx.prisma.groupMembership.delete({
@@ -144,17 +149,17 @@ export const GroupMembershipMutations = {
     })
 
     if (!deletedMembership) {
-      return { success: false, error: "Could not delete membership" }
+      return {success: false, error: "Could not delete membership"}
     }
 
     await ctx.messenger.sendGroupMembershipDeleted(membershipId)
 
-    return { success: true }
+    return {success: true}
   },
 
   async requestGroupAccess(_: any, args: any, ctx: Context) {
     const {
-      input: { groupId },
+      input: {groupId},
     } = args
 
     const userId = ctx.userId
@@ -165,7 +170,7 @@ export const GroupMembershipMutations = {
 
     const membership = await ctx.prisma.groupMembership.findUnique({
       where: {
-        GroupMembership_memberId_groupId_key: { memberId: userId, groupId },
+        GroupMembership_memberId_groupId_key: {memberId: userId, groupId},
       },
     })
 
@@ -173,19 +178,23 @@ export const GroupMembershipMutations = {
       return new Error("User already has a membership with this group")
     }
 
-    return ctx.prisma.groupMembership.create({
-      data: {
-        memberId: userId,
-        active: false,
-        role: "MEMBER",
-        status: "PENDING",
-        group: {
-          connect: {
-            id: groupId,
+    try {
+      return ctx.prisma.groupMembership.create({
+        data: {
+          memberId: userId,
+          active: false,
+          role: "MEMBER",
+          status: "PENDING",
+          group: {
+            connect: {
+              id: groupId,
+            },
           },
         },
-      },
-    })
+      })
+    } catch (e) {
+      return null
+    }
   },
 }
 

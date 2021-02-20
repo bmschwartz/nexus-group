@@ -1,6 +1,7 @@
 import { rule, shield, and, or } from "graphql-shield"
 import { Context } from "../context"
 import {validateActiveUserHasRoleAndStatus} from "../repository/GroupMembershipRepository";
+import {logger} from "../logger";
 
 const isAuthenticated = rule()((parent, args, { userId }) => {
   return !!userId
@@ -12,15 +13,19 @@ const isGroupAdmin = rule({ cache: "strict" })(
       input: { groupId },
     } = args
 
-    const error = await validateActiveUserHasRoleAndStatus(
-      ctx.prisma,
-      ctx.userId,
-      groupId,
-      "ADMIN",
-      "APPROVED",
-    )
+    try {
+      return await validateActiveUserHasRoleAndStatus(
+        ctx.prisma,
+        ctx.userId,
+        groupId,
+        "ADMIN",
+        "APPROVED",
+      )
+    } catch (e) {
+      logger.error({ message: "[isGroupAdmin] Error", userId: ctx.userId, groupId })
+    }
 
-    return error || true
+    return false
   },
 )
 

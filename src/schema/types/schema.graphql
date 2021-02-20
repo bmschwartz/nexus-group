@@ -157,6 +157,7 @@ type CreateGroupMembershipResult {
 }
 
 input UpdateMembershipRoleInput {
+  groupId: ID!
   membershipId: ID!
   role: MembershipRole!
 }
@@ -167,8 +168,8 @@ input UpdateMembershipStatusInput {
 }
 
 input UpdateMembershipActiveInput {
-  membershipId: ID!
   active: Boolean!
+  membershipId: ID!
 }
 
 input DeleteMembershipInput {
