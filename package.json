@@ -1,10 +1,9 @@
 {
-  "name": "graphql-auth",
-  "license": "MIT",
+  "name": "nexus-group",
   "scripts": {
     "start": "node dist/server",
     "clean": "rm -rf dist",
-    "build": "npm -s run clean && npm -s run generate && tsc --build tsconfig.json",
+    "build": "npm -s run clean && tsc --build tsconfig.json",
     "generate": "npm -s run generate:prisma",
     "generate:prisma": "prisma generate",
     "postinstall": "npm -s run generate",
@@ -17,14 +16,17 @@
     "amqp-ts": "^1.8.0",
     "apollo": "^2.30.2",
     "apollo-server": "2.15.1",
-    "bitpay-sdk": "git+https://github.com/TradeNexus/nodejs-bitpay-client.git",
+    "aws-sdk": "^2.848.0",
+    "bitpay-sdk": "^1.4.2102",
     "dotenv": "^8.2.0",
     "graphql": "^15.3.0",
     "graphql-middleware": "^4.0.2",
     "graphql-shield": "^7.3.3",
     "i": "^0.3.6",
     "node-schedule": "^2.0.0",
-    "npm": "^7.5.4"
+    "npm": "^7.5.4",
+    "winston": "^3.3.3",
+    "winston-cloudwatch": "^2.5.0"
   },
   "devDependencies": {
     "@types/node": "12.12.50",
