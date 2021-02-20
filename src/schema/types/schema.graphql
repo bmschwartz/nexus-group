@@ -164,6 +164,7 @@ input UpdateMembershipRoleInput {
 }
 
 input UpdateMembershipStatusInput {
+  groupId: ID!
   membershipId: ID!
   status: MembershipStatus!
 }
