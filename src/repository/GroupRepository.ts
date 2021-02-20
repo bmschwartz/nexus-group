@@ -1,4 +1,4 @@
-import { GroupMembership, MembershipRole, Prisma } from "@prisma/client";
+import { GroupMembership, MembershipRole, Prisma, MembershipStatus } from "@prisma/client";
 import { Context } from "../context";
 
 export interface GroupMembersInput {
@@ -6,6 +6,7 @@ export interface GroupMembersInput {
   limit?: number
   offset?: number
   roles?: MembershipRole[]
+  statuses?: MembershipStatus[]
 }
 
 export interface GroupMembersResult {
@@ -15,12 +16,16 @@ export interface GroupMembersResult {
 
 export const getGroupMembers = async (
   ctx: Context,
-  { groupId, limit, offset, roles }: GroupMembersInput,
+  { groupId, limit, offset, roles, statuses }: GroupMembersInput,
 ): Promise<GroupMembersResult | Error> => {
   const whereClause: Prisma.GroupMembershipWhereInput = { groupId }
 
   if (roles) {
     whereClause.role = { in: roles }
+  }
+
+  if (statuses) {
+    whereClause.status = { in: statuses }
   }
 
   const members: GroupMembership[] = await ctx.prisma.groupMembership.findMany({

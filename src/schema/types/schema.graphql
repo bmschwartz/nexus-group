@@ -89,6 +89,7 @@ input GroupMembersInput {
   limit: Int
   offset: Int
   roles: [MembershipRole!]
+  statuses: [MembershipStatus!]
 }
 
 type GroupMembersResult {

@@ -157,8 +157,9 @@ export const GroupResolvers = {
     const limit = input?.limit
     const offset = input?.offset
     const roles = input?.roles
+    const statuses = input?.statuses
 
-    return getGroupMembers(ctx, { groupId, limit, offset, roles })
+    return getGroupMembers(ctx, { groupId, limit, offset, roles, statuses })
   },
 }
 
