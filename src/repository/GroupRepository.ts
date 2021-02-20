@@ -1,7 +1,6 @@
 import { GroupMembership, MembershipRole, Prisma } from "@prisma/client";
 import { Context } from "../context";
 
-
 export interface GroupMembersInput {
   groupId: string
   limit?: number
@@ -14,7 +13,10 @@ export interface GroupMembersResult {
   members: GroupMembership[]
 }
 
-export const getGroupMembers = async (ctx: Context, { groupId, limit, offset, roles }: GroupMembersInput): Promise<GroupMembersResult | Error> => {
+export const getGroupMembers = async (
+  ctx: Context,
+  { groupId, limit, offset, roles }: GroupMembersInput,
+): Promise<GroupMembersResult | Error> => {
   const whereClause: Prisma.GroupMembershipWhereInput = { groupId }
 
   if (roles) {

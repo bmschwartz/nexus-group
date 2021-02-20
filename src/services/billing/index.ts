@@ -8,7 +8,7 @@ import {
   Client as BitpayClient,
   Env as BitPayEnv,
   Tokens, Models,
-  Currency
+  Currency,
 } from "bitpay-sdk";
 
 dotenv.config()
@@ -44,7 +44,7 @@ export class BillingClient {
   _updateBillStatusesJob: schedule.Job
 
   constructor({ prisma, messenger }: SubscriptionClientProps) {
-    let tokens = Tokens
+    const tokens = Tokens
     tokens.merchant = bitpayToken as string
 
     this._db = prisma
@@ -53,7 +53,7 @@ export class BillingClient {
       "",
       BitPayEnv.Test,
       bitpayPrivateKey as string,
-      tokens
+      tokens,
     );
 
     this._determineBillsJob = schedule.scheduleJob(
