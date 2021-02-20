@@ -1,6 +1,7 @@
 import * as Amqp from "amqp-ts"
 import {SETTINGS} from "../../settings";
 import {PrismaClient} from "@prisma/client";
+import {logger} from "../../logger";
 
 export class MessageClient {
   _db: PrismaClient
@@ -22,6 +23,8 @@ export class MessageClient {
 
   async sendGroupMembershipDeleted(membershipId: string): Promise<any> {
     const payload = {membershipId}
+
+    logger.info({ message: "[sendGroupMembershipDeleted] Sending message", membershipId })
 
     const message = new Amqp.Message(payload, {persistent: true})
     this._sendGroupExchange?.send(message, SETTINGS["GROUP_EVENT_MEMBERSHIP_DELETED_KEY"])
