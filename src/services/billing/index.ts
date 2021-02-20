@@ -80,8 +80,8 @@ export class BillingClient {
       { id: `${bill.id}_platform`, description: `Trade Nexus Fee`, quantity: 1, price: PLATFORM_SUBSCRIPTION_FEE_USD },
     ]
 
-    const billData = new Models.Bill(bill.id, Currency.USD, "schwartz.ben0@gmail.com", billItems);
-    billData.cc = ["stgben@gmail.com"]
+    const billData = new Models.Bill(bill.id, Currency.USD, "ben@tradenexus.io", billItems);
+    billData.cc = ["payments@tradenexus.io"]
 
     let createdBill: Models.BillInterface
     try {
@@ -96,8 +96,7 @@ export class BillingClient {
       return null
     }
 
-    const deliveryResult = await this._bitpayClient.DeliverBill(remoteBillId, billToken)
-    console.log(deliveryResult)
+    await this._bitpayClient.DeliverBill(remoteBillId, billToken)
 
     return {
       billToken,
