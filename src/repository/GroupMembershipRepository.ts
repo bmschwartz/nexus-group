@@ -1,6 +1,5 @@
 import {GroupMembership, MembershipRole, MembershipStatus, PrismaClient} from "@prisma/client";
 import { Context } from "../context";
-import {createMemberSubscription} from "./MemberSubscriptionRepository";
 
 export interface CreateGroupMembershipInput {
   groupId: string
@@ -54,13 +53,6 @@ export const createMembership = async (
     }
   } catch (e) {
     return { success: false, error: "Error creating the membership" }
-  }
-
-  const createSubscriptionResult = await createMemberSubscription(ctx,
-    { groupId, membershipId: membership.id },
-  )
-  if (!createSubscriptionResult.success) {
-    return createSubscriptionResult
   }
 
   return { success: true }
