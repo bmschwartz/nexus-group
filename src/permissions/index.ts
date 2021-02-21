@@ -82,7 +82,7 @@ export const permissions = shield({
     renameGroup: and(isAuthenticated, isGroupAdmin),
     disableGroup: and(isAuthenticated, isGroupAdmin),
     requestGroupAccess: isAuthenticated,
-    updateGroupDescription: and(isAuthenticated, isGroupAdmin),
+    updateGroupDescription: and(isAuthenticated, or(isGroupAdmin, isGroupTrader)),
 
     // GroupMembership Mutations
     createMembership: and(isAuthenticated, isGroupAdmin),
