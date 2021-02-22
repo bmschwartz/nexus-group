@@ -10,8 +10,6 @@ import {
   Tokens, Models,
   Currency,
 } from "bitpay-sdk";
-import {logger} from "../../logger";
-import {Context} from "../../context";
 
 dotenv.config()
 
@@ -32,15 +30,9 @@ export const PLATFORM_SUBSCRIPTION_FEE_USD = 2
 
 const bitpayToken = process.env.BITPAY_TOKEN
 const bitpayPrivateKey = process.env.BITPAY_PRIVATE_KEY
-const bitpayNotificationsURL = process.env.BITPAY_NOTIFICATIONS_URL
 
 if (!bitpayToken || !bitpayPrivateKey) {
-  logger.error({ message: "BitPay token or secret missing" })
-  process.exit(1)
-}
-
-if (!bitpayNotificationsURL) {
-  logger.error({ message: "Missing BitPay notificationsURL" })
+  console.error("Unable to load BitPay token or key")
   process.exit(1)
 }
 
@@ -110,21 +102,6 @@ export class BillingClient {
       billToken,
       remoteBillId,
       billStatus: BillStatus.DRAFT,
-    }
-  }
-
-  async createInvoice(email: string, amount: number) {
-    const invoiceData = new Models.Invoice(amount, Currency.USD)
-    invoiceData.notificationURL = "https://tradenexus.ngrok.io/payments"
-    invoiceData.redirectURL = "https://www.tradenexus.io"
-    invoiceData.buyer = { email }
-
-    try {
-      const response = await this._bitpayClient.CreateInvoice(invoiceData)
-      console.log(response)
-      return response
-    } catch (e) {
-      console.error(e)
     }
   }
 
