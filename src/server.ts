@@ -1,4 +1,5 @@
-import { ApolloServer } from "apollo-server"
+import express, {Request, Response} from "express"
+import { ApolloServer } from "apollo-server-express"
 import { buildFederatedSchema } from "@apollo/federation"
 import { applyMiddleware } from "graphql-middleware"
 
@@ -6,6 +7,10 @@ import { typeDefs } from "./schema/types"
 import { resolvers } from "./schema/resolvers"
 import { createContext } from "./context"
 import { permissions } from "./permissions"
+import bodyParser from "body-parser";
+
+const app = express()
+app.use(bodyParser.json())
 
 const server = new ApolloServer({
   schema: applyMiddleware(
@@ -19,6 +24,22 @@ const server = new ApolloServer({
   introspection: true,
 })
 
-server.listen({ port: 4002 }).then(({ url }) => {
-  console.log(`🚀 Server ready at ${url}`)
+server.applyMiddleware({ app })
+
+app.get("/payments", async (req: Request, res: Response) => {
+  const ctx = createContext({ req })
+  const invoice = await ctx.billing.createInvoice("ben@tradenexus.io", 5)
+  if (!invoice) {
+    return res.status(400)
+  }
+  return res.redirect(invoice.url)
+})
+
+app.post("/payments", (req: Request, res: Response) => {
+  console.log(req.body)
+  return res.sendStatus(200)
+})
+
+app.listen({ port: 4002 }, () => {
+  console.log(`🚀 Server ready!`)
 })
