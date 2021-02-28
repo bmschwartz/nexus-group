@@ -1,15 +1,10 @@
 import * as dotenv from "dotenv"
+import * as btcpay from "btcpay"
 import schedule from "node-schedule"
 import { PrismaClient, SubscriptionBill, GroupSubscription, BillStatus } from "@prisma/client";
 import { MessageClient } from "../messenger";
 import { createBill } from "../../repository/SubscriptionBillRepository";
 import { convertToLocalBillStatus, getAllSettledResults } from "../../helper"
-import {
-  Client as BitpayClient,
-  Env as BitPayEnv,
-  Tokens, Models,
-  Currency,
-} from "bitpay-sdk";
 import {logger} from "../../logger";
 import {Context} from "../../context";
 
@@ -30,39 +25,31 @@ const SUBSCRIPTION_DURATION_MONTHS = 1
 const NEW_BILL_LEAD_TIME_DAYS = 7
 export const PLATFORM_SUBSCRIPTION_FEE_USD = 2
 
-const bitpayToken = process.env.BITPAY_TOKEN
-const bitpayPrivateKey = process.env.BITPAY_PRIVATE_KEY
-const bitpayNotificationsURL = process.env.BITPAY_NOTIFICATIONS_URL
+// const bitpayToken = process.env.BITPAY_TOKEN
+// const bitpayPrivateKey = process.env.BITPAY_PRIVATE_KEY
+// const bitpayNotificationsURL = process.env.BITPAY_NOTIFICATIONS_URL
+const btcPayKey = process.env.BTCPAY_KEY
+const btcPayURL = process.env.BTCPAY_URL
+const btcPayMerchant = process.env.BTCPAY_MERCHANT_ID
+const btcPayKeyPair = btcpay.crypto.load_keypair(Buffer.from(btcPayKey, "hex"))
 
-if (!bitpayToken || !bitpayPrivateKey) {
-  logger.error({ message: "BitPay token or secret missing" })
-  process.exit(1)
-}
-
-if (!bitpayNotificationsURL) {
-  logger.error({ message: "Missing BitPay notificationsURL" })
+if (!btcPayKey || !btcPayKeyPair) {
+  logger.error({ message: "BTCPay Keys Missing" })
   process.exit(1)
 }
 
 export class BillingClient {
   _db: PrismaClient
   _messenger: MessageClient
-  _bitpayClient: BitpayClient
+  _btcpayClient: btcpay.BTCPayClient
   _determineBillsJob: schedule.Job
   _updateBillStatusesJob: schedule.Job
 
   constructor({ prisma, messenger }: SubscriptionClientProps) {
-    const tokens = Tokens
-    tokens.merchant = bitpayToken as string
-
     this._db = prisma
     this._messenger = messenger
-    this._bitpayClient = new BitpayClient(
-      "",
-      BitPayEnv.Test,
-      bitpayPrivateKey as string,
-      tokens,
-    );
+
+    this._btcpayClient = new btcpay.BTCPayClient(btcPayURL, btcPayKeyPair, { merchant: btcPayMerchant })
 
     this._determineBillsJob = schedule.scheduleJob(
       "determineBillsToSend",
@@ -83,49 +70,27 @@ export class BillingClient {
     groupSubscription: GroupSubscription,
     bill: SubscriptionBill,
   ): Promise<SendBillResponse | null> {
-    const billItems: Models.Item[] = [
-      { id: `${bill.id}_membership`, description: `${groupName} Membership`, quantity: 1, price: groupSubscription.price },
-      { id: `${bill.id}_platform`, description: `Trade Nexus Fee`, quantity: 1, price: PLATFORM_SUBSCRIPTION_FEE_USD },
-    ]
-
-    const billData = new Models.Bill(bill.id, Currency.USD, "ben@tradenexus.io", billItems);
-    billData.cc = ["payments@tradenexus.io"]
-
-    let createdBill: Models.BillInterface
-    try {
-      createdBill = await this._bitpayClient.CreateBill(billData);
-    } catch (e) {
-      console.error("Unable to create a bill for ", bill.subscriptionId)
-      return null
-    }
-    const { id: remoteBillId, token: billToken } = createdBill
-    if (remoteBillId === null || billToken === null) {
-      console.error("Bill ID or Bill Token are null for ", bill.subscriptionId)
-      return null
-    }
-
-    await this._bitpayClient.DeliverBill(remoteBillId, billToken)
-
-    return {
-      billToken,
-      remoteBillId,
-      billStatus: BillStatus.DRAFT,
-    }
+    return null
   }
 
-  async createInvoice(email: string, amount: number) {
-    const invoiceData = new Models.Invoice(amount, Currency.USD)
-    invoiceData.notificationURL = "https://tradenexus.ngrok.io/payments"
-    invoiceData.redirectURL = "https://www.tradenexus.io"
-    invoiceData.buyer = { email }
+  async createInvoice(price: number): Promise<btcpay.Invoice> {
+    // const invoiceData = new Models.Invoice(amount, Currency.USD)
+    // invoiceData.notificationURL = "https://tradenexus.ngrok.io/payments"
+    // invoiceData.redirectURL = "https://www.tradenexus.io"
+    // invoiceData.buyer = { email }
+    //
+    // try {
+    //   const response = await this._bitpayClient.CreateInvoice(invoiceData)
+    //   console.log(response)
+    //   return response
+    // } catch (e) {
+    //   console.error(e)
+    // }
+    const invoice = await this._btcpayClient.create_invoice({ price, currency: "USD", redirectUrl: "localhost:3000"})
 
-    try {
-      const response = await this._bitpayClient.CreateInvoice(invoiceData)
-      console.log(response)
-      return response
-    } catch (e) {
-      console.error(e)
-    }
+    await this._btcpayClient.get_invoices({ status: "paid" })
+
+    return invoice
   }
 
   determineBillsToSend(prisma: PrismaClient) {
@@ -184,69 +149,70 @@ export class BillingClient {
   }
 
   async fetchRemotePendingBillIds() {
-    const fetchPendingBillRequests = [
-      this._bitpayClient.GetBills(BillStatus.DRAFT.toLowerCase()),
-      this._bitpayClient.GetBills(BillStatus.NEW.toLowerCase()),
-      this._bitpayClient.GetBills(BillStatus.SENT.toLowerCase()),
-      // this._bitpayClient.GetBills(BillStatus.PAID.toLowerCase()),
-    ]
-
-    const remotePendingBillResults = getAllSettledResults(await Promise.allSettled(fetchPendingBillRequests))
-    return remotePendingBillResults.flatMap((bills) => {
-      return bills.map(bill => bill.id)
-    })
+    // const fetchPendingBillRequests = [
+    //   this._bitpayClient.GetBills(BillStatus.DRAFT.toLowerCase()),
+    //   this._bitpayClient.GetBills(BillStatus.NEW.toLowerCase()),
+    //   this._bitpayClient.GetBills(BillStatus.SENT.toLowerCase()),
+    //   // this._bitpayClient.GetBills(BillStatus.PAID.toLowerCase()),
+    // ]
+    //
+    // const remotePendingBillResults = getAllSettledResults(await Promise.allSettled(fetchPendingBillRequests))
+    // return remotePendingBillResults.flatMap((bills) => {
+    //   return bills.map(bill => bill.id)
+    // })
+    return []
   }
 
   async updateBill(remoteBillId: string) {
-    let remoteBill: Models.BillInterface
-    try {
-      remoteBill = await this._bitpayClient.GetBill(remoteBillId)
-    } catch (e) {
-      console.error("Failed to fetch remote bill ", remoteBillId);
-      return
-    }
-
-    if (!remoteBill.status) {
-      console.error("Remote bill status is null ", remoteBillId);
-      return
-    }
-
-    const localStatus = convertToLocalBillStatus(remoteBill.status)
-    if (!localStatus) {
-      console.error("Could not convert remote bill status to local")
-    }
-
-    const localBill = await this._db.subscriptionBill.findFirst({
-      where: { remoteBillId },
-    })
-
-    if (!localBill) {
-      console.error("Could not find bill locally", remoteBillId)
-      return
-    }
-
-    const updateData = {
-      amountPaid: localBill.amountCharged,
-      billStatus: convertToLocalBillStatus(remoteBill.status) as BillStatus,
-    }
-
-    if (localStatus === BillStatus.COMPLETE) {
-      // const subscriptionEndDateThreshold = new Date()
-      // subscriptionEndDateThreshold.setDate(subscriptionEndDateThreshold.getDate() + NEW_BILL_LEAD_TIME_DAYS)
-      if (localBill.periodStart) {
-        updateData["periodStart"] = localBill.periodStart > new Date() ? localBill.periodStart : new Date()
-      } else {
-        updateData["periodStart"] = new Date()
-      }
-
-      const periodEnd = new Date(updateData["periodStart"])
-      periodEnd.setMonth(periodEnd.getMonth() + SUBSCRIPTION_DURATION_MONTHS)
-      updateData["periodEnd"] = periodEnd
-    }
-
-    await this._db.subscriptionBill.update({
-      where: { id: localBill.id },
-      data: updateData,
-    })
+    // let remoteBill: Models.BillInterface
+    // try {
+    //   remoteBill = await this._bitpayClient.GetBill(remoteBillId)
+    // } catch (e) {
+    //   console.error("Failed to fetch remote bill ", remoteBillId);
+    //   return
+    // }
+    //
+    // if (!remoteBill.status) {
+    //   console.error("Remote bill status is null ", remoteBillId);
+    //   return
+    // }
+    //
+    // const localStatus = convertToLocalBillStatus(remoteBill.status)
+    // if (!localStatus) {
+    //   console.error("Could not convert remote bill status to local")
+    // }
+    //
+    // const localBill = await this._db.subscriptionBill.findFirst({
+    //   where: { remoteBillId },
+    // })
+    //
+    // if (!localBill) {
+    //   console.error("Could not find bill locally", remoteBillId)
+    //   return
+    // }
+    //
+    // const updateData = {
+    //   amountPaid: localBill.amountCharged,
+    //   billStatus: convertToLocalBillStatus(remoteBill.status) as BillStatus,
+    // }
+    //
+    // if (localStatus === BillStatus.COMPLETE) {
+    //   // const subscriptionEndDateThreshold = new Date()
+    //   // subscriptionEndDateThreshold.setDate(subscriptionEndDateThreshold.getDate() + NEW_BILL_LEAD_TIME_DAYS)
+    //   if (localBill.periodStart) {
+    //     updateData["periodStart"] = localBill.periodStart > new Date() ? localBill.periodStart : new Date()
+    //   } else {
+    //     updateData["periodStart"] = new Date()
+    //   }
+    //
+    //   const periodEnd = new Date(updateData["periodStart"])
+    //   periodEnd.setMonth(periodEnd.getMonth() + SUBSCRIPTION_DURATION_MONTHS)
+    //   updateData["periodEnd"] = periodEnd
+    // }
+    //
+    // await this._db.subscriptionBill.update({
+    //   where: { id: localBill.id },
+    //   data: updateData,
+    // })
   }
 }

@@ -6,7 +6,8 @@ dotenv.config()
 export const SETTINGS = {}
 
 export function initSettings() {
-  // RabbitMQ - Group
+  // RabbitMQ
+  assignEnvVar("AMQP_URL", process.env.AMQP_URL)
   assignEnvVar("GROUP_EXCHANGE", process.env.GROUP_EXCHANGE)
 
   assignEnvVar("GROUP_EVENT_MEMBERSHIP_DELETED_KEY", process.env.GROUP_EVENT_MEMBERSHIP_DELETED_KEY)

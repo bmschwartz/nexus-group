@@ -28,11 +28,13 @@ server.applyMiddleware({ app })
 
 app.get("/payments", async (req: Request, res: Response) => {
   const ctx = createContext({ req })
-  const invoice = await ctx.billing.createInvoice("ben@tradenexus.io", 5)
-  if (!invoice) {
+  try {
+    const invoice = await ctx.billing.createInvoice(5)
+
+    return res.redirect(invoice.url)
+  } catch (e) {
     return res.status(400)
   }
-  return res.redirect(invoice.url)
 })
 
 app.post("/payments", (req: Request, res: Response) => {

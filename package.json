@@ -20,6 +20,7 @@
     "aws-sdk": "^2.848.0",
     "bitpay-sdk": "^1.4.2102",
     "body-parser": "^1.19.0",
+    "btcpay": "^0.2.4",
     "dotenv": "^8.2.0",
     "graphql": "^15.3.0",
     "graphql-middleware": "^4.0.2",

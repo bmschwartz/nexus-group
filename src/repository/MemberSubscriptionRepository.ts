@@ -45,7 +45,7 @@ export async function payMemberSubscription(
 ): Promise<PayMemberSubscriptionResult> {
   try {
     const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
-      where: { id: subscriptionId},
+      where: { id: subscriptionId },
     })
 
     if (!memberSubscription) {
