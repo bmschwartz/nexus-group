@@ -1,3 +1,4 @@
+import bodyParser from "body-parser";
 import express, {Request, Response} from "express"
 import { ApolloServer } from "apollo-server-express"
 import { buildFederatedSchema } from "@apollo/federation"
@@ -7,7 +8,6 @@ import { typeDefs } from "./schema/types"
 import { resolvers } from "./schema/resolvers"
 import { createContext } from "./context"
 import { permissions } from "./permissions"
-import bodyParser from "body-parser";
 
 const app = express()
 app.use(bodyParser.json())

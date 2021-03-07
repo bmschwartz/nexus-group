@@ -10,10 +10,10 @@ import {
 export const MemberSubscriptionMutations = {
   async payMemberSubscription(_: any, args: any, ctx: Context) {
     const {
-      input: { subscriptionId },
+      input: { groupId, membershipId },
     } = args
 
-    return payMemberSubscription(ctx, { subscriptionId })
+    return payMemberSubscription(ctx, { groupId, membershipId })
   },
 
   async activateMemberSubscription(_: any, args: any, ctx: Context) {

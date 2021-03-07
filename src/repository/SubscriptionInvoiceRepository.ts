@@ -3,7 +3,7 @@ import {PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus} fro
 
 import { Context } from "../context";
 import { BillingClient, PLATFORM_SUBSCRIPTION_FEE_USD } from "../services/billing";
-import {convertToLocalInvoiceStatus} from "../helper";
+import {convertToLocalInvoiceStatus, getUserEmailById} from "../helper";
 
 export interface CreateSubscriptionInvoiceInput {
   subscriptionId: string
@@ -32,6 +32,7 @@ export async function createInvoice(
   { subscriptionId, groupSubscription }: CreateSubscriptionInvoiceInput,
 ): Promise<SubscriptionInvoice | null> {
   let invoice
+  let userEmail
   let memberSubscription
 
   try {
@@ -48,6 +49,22 @@ export async function createInvoice(
   }
 
   try {
+    const membership = await prisma.groupMembership.findUnique({
+      where: { id: memberSubscription.groupMembershipId },
+    })
+
+    if (!membership) {
+      console.error("No matching membership found")
+      return null
+    }
+
+    userEmail = await getUserEmailById(membership.memberId)
+  } catch (e) {
+    console.error("Error getting membership")
+    return null
+  }
+
+  try {
     const totalCost = groupSubscription.price + PLATFORM_SUBSCRIPTION_FEE_USD
 
     invoice = await prisma.subscriptionInvoice.create({
@@ -55,7 +72,7 @@ export async function createInvoice(
         amountPaid: 0,
         subscriptionId,
         amountCharged: totalCost,
-        email: "ben@tradenexus.io",
+        email: userEmail,
         status: InvoiceStatus.NEW,
         periodStart: memberSubscription.endDate,
       },

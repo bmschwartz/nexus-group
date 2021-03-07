@@ -225,7 +225,8 @@ type MemberSubscription @key(fields: "id") {
 }
 
 input PayMemberSubscriptionInput {
-  subscriptionId: ID!
+  groupId: ID!
+  membershipId: ID!
 }
 
 type PayMemberSubscriptionResult {
@@ -273,11 +274,12 @@ type SubscriptionInvoice @key(fields: "id") {
 }
 
 enum InvoiceStatus {
-  DRAFT
-  SENT
   NEW
   PAID
+  CONFIRMED
   COMPLETE
+  EXPIRED
+  INVALID
 }
 
 ########################

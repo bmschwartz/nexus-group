@@ -1,3 +1,5 @@
+import axios from "axios"
+import crypto from "crypto"
 import { InvoiceStatus } from "@prisma/client"
 
 export async function asyncForEach(array: any[], callback: CallableFunction) {
@@ -27,4 +29,18 @@ export function convertToLocalInvoiceStatus(status: string): InvoiceStatus | nul
   }
 
   return null
+}
+
+export async function getUserEmailById(userId: string): Promise<string> {
+  const sig = crypto.createHmac("sha256", process.env.APP_SECRET)
+    .update(userId)
+    .digest("hex");
+
+  const userEndpoint = `${process.env.NEXUS_USER_URL}/user`
+  const response = await axios.get(userEndpoint, {
+    params: { userId },
+    headers: { sig },
+  })
+
+  return response.data.email
 }

@@ -1,19 +1,16 @@
 import { Context } from "../context";
-import {PrismaClient, SubscriptionInvoice} from "@prisma/client";
+import {PrismaClient, SubscriptionInvoice, MemberSubscription} from "@prisma/client";
 import {createInvoice} from "./SubscriptionInvoiceRepository";
+import {getUserEmailById} from "../helper";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
   groupId: string
 }
 
-export interface CreateMemberSubscriptionResult {
-  success: boolean
-  error?: string
-}
-
 export interface PayMemberSubscriptionInput {
-  subscriptionId: string
+  groupId: string
+  membershipId: string
 }
 
 export interface PayMemberSubscriptionResult {
@@ -41,14 +38,12 @@ export interface CancelMemberSubscriptionResult {
 
 export async function payMemberSubscription(
   ctx: Context,
-  { subscriptionId }: PayMemberSubscriptionInput,
+  { membershipId, groupId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
   let invoice: SubscriptionInvoice
 
   try {
-    const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
-      where: { id: subscriptionId },
-    })
+    const memberSubscription = await createOrGetMemberSubscription(ctx, { membershipId, groupId })
 
     if (!memberSubscription) {
       return { error: "Subscription does not exist" }
@@ -62,7 +57,7 @@ export async function payMemberSubscription(
       return { error: "Could not find matching group subscription" }
     }
 
-    invoice = await createInvoice(ctx.prisma, ctx.billing, {subscriptionId, groupSubscription})
+    invoice = await createInvoice(ctx.prisma, ctx.billing, { subscriptionId: memberSubscription.id, groupSubscription })
 
   } catch (e) {
     return { error: "Could not submit subscription invoice" }
@@ -114,9 +109,9 @@ export async function cancelMemberSubscription(
   return { success: true }
 }
 
-export async function createMemberSubscription(
+export async function createOrGetMemberSubscription(
   ctx: Context, input: CreateMemberSubscriptionInput,
-): Promise<CreateMemberSubscriptionResult> {
+): Promise<MemberSubscription | null> {
   const { membershipId, groupId } = input
 
   const groupSubscription = await ctx.prisma.groupSubscription.findFirst({
@@ -124,7 +119,7 @@ export async function createMemberSubscription(
   })
 
   if (!groupSubscription) {
-    return { success: false, error: "Group subscription does not exist!" }
+    return null
   }
 
   let memberSubscription = await ctx.prisma.memberSubscription.findUnique({
@@ -136,7 +131,7 @@ export async function createMemberSubscription(
   })
 
   if (memberSubscription) {
-    return { success: false, error: "Subscription already exists!"}
+    return memberSubscription
   }
 
   try {
@@ -148,17 +143,10 @@ export async function createMemberSubscription(
     })
   } catch (e) {
     console.error(e)
-    return { success: false, error: "Error creating Subscription" }
+    return null
   }
 
-  // if (memberSubscription) {
-  //   await createBill(ctx.prisma, ctx.billing, {
-  //     subscriptionId: memberSubscription.id,
-  //     groupSubscription,
-  //   })
-  // }
-
-  return { success: true }
+  return memberSubscription
 }
 
 export async function subscriptionIsActive(ctx: Context, subscriptionId: string): Promise<boolean> {
