@@ -63,21 +63,21 @@ model MemberSubscription {
   updatedAt           DateTime              @default(now())
   groupSubscription   GroupSubscription     @relation(fields: [groupSubscriptionId], references: [id])
   groupMembership     GroupMembership       @relation(fields: [groupMembershipId], references: [id])
-  bills               SubscriptionBill[]
+  invoices            SubscriptionInvoice[]
 
   @@unique([groupMembershipId, groupSubscriptionId], name: "MemberSubscription_groupMembershipId_groupSubscriptionId_key")
 }
 
-model SubscriptionBill {
+model SubscriptionInvoice {
   id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   subscriptionId  String             @db.Uuid
   email           String
   amountPaid      Float
   amountCharged   Float
-  billStatus      BillStatus
+  status          InvoiceStatus
 
-  remoteBillId    String?
-  billToken       String?
+  remoteId        String?
+  token           String?
 
   periodStart     DateTime?
   periodEnd       DateTime?
@@ -106,10 +106,11 @@ enum PayoutCurrency {
   LTC
 }
 
-enum BillStatus {
-  DRAFT
-  SENT
+enum InvoiceStatus {
   NEW
   PAID
+  CONFIRMED
   COMPLETE
+  EXPIRED
+  INVALID
 }

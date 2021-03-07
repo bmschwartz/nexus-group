@@ -1,6 +1,6 @@
 import { Context } from "../context";
-import {PrismaClient, SubscriptionBill} from "@prisma/client";
-import {createBill} from "./SubscriptionBillRepository";
+import {PrismaClient, SubscriptionInvoice} from "@prisma/client";
+import {createInvoice} from "./SubscriptionInvoiceRepository";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
@@ -17,7 +17,7 @@ export interface PayMemberSubscriptionInput {
 }
 
 export interface PayMemberSubscriptionResult {
-  success: boolean
+  invoiceId?: string
   error?: string
 }
 
@@ -43,13 +43,15 @@ export async function payMemberSubscription(
   ctx: Context,
   { subscriptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
+  let invoice: SubscriptionInvoice
+
   try {
     const memberSubscription = await ctx.prisma.memberSubscription.findUnique({
       where: { id: subscriptionId },
     })
 
     if (!memberSubscription) {
-      return { success: false, error: "Subscription does not exist" }
+      return { error: "Subscription does not exist" }
     }
 
     const groupSubscription = await ctx.prisma.groupSubscription.findUnique({
@@ -57,16 +59,16 @@ export async function payMemberSubscription(
     })
 
     if (!groupSubscription) {
-      return { success: false, error: "Could not find matching group subscription" }
+      return { error: "Could not find matching group subscription" }
     }
 
-    await createBill(ctx.prisma, ctx.billing, {subscriptionId, groupSubscription})
+    invoice = await createInvoice(ctx.prisma, ctx.billing, {subscriptionId, groupSubscription})
 
   } catch (e) {
-    return { success: false, error: "Could not submit subscription bill" }
+    return { error: "Could not submit subscription invoice" }
   }
 
-  return { success: true }
+  return { invoiceId: invoice.remoteId }
 }
 
 export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
@@ -149,12 +151,12 @@ export async function createMemberSubscription(
     return { success: false, error: "Error creating Subscription" }
   }
 
-  if (memberSubscription) {
-    await createBill(ctx.prisma, ctx.billing, {
-      subscriptionId: memberSubscription.id,
-      groupSubscription,
-    })
-  }
+  // if (memberSubscription) {
+  //   await createBill(ctx.prisma, ctx.billing, {
+  //     subscriptionId: memberSubscription.id,
+  //     groupSubscription,
+  //   })
+  // }
 
   return { success: true }
 }
@@ -175,8 +177,8 @@ export async function subscriptionIsActive(ctx: Context, subscriptionId: string)
   return activeChecks.every(Boolean)
 }
 
-export async function getSubscriptionBills(ctx: Context, subscriptionId: string): Promise<SubscriptionBill[]> {
-  return ctx.prisma.subscriptionBill.findMany({
+export async function getSubscriptionInvoices(ctx: Context, subscriptionId: string): Promise<SubscriptionInvoice[]> {
+  return ctx.prisma.subscriptionInvoice.findMany({
     where: { subscriptionId },
   })
 }

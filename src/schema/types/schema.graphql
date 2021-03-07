@@ -221,7 +221,7 @@ type MemberSubscription @key(fields: "id") {
   endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
-  bills: [SubscriptionBill!]!
+  invoices: [SubscriptionInvoice!]!
 }
 
 input PayMemberSubscriptionInput {
@@ -229,7 +229,7 @@ input PayMemberSubscriptionInput {
 }
 
 type PayMemberSubscriptionResult {
-  success: Boolean!
+  invoiceId: String
   error: String
 }
 
@@ -252,18 +252,18 @@ type CancelMemberSubscriptionResult {
 }
 
 ########################
-#  SubscriptionBill
+#  SubscriptionInvoice
 ########################
-type SubscriptionBill @key(fields: "id") {
+type SubscriptionInvoice @key(fields: "id") {
   id: ID!
   email: String!
   amountPaid: Float!
   amountCharged: Float!
-  billStatus: BillStatus!
+  status: InvoiceStatus!
   subscription: MemberSubscription!
 
-  remoteBillId: ID
-  billToken: ID
+  remoteId: ID
+  token: ID
 
   periodStart: DateTime
   periodEnd: DateTime
@@ -272,7 +272,7 @@ type SubscriptionBill @key(fields: "id") {
   updatedAt: DateTime!
 }
 
-enum BillStatus {
+enum InvoiceStatus {
   DRAFT
   SENT
   NEW

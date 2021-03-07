@@ -3,7 +3,7 @@ import { Context } from "../../context"
 // @ts-ignore
 import {
   activateMemberSubscription,
-  cancelMemberSubscription, getSubscriptionBills, payMemberSubscription,
+  cancelMemberSubscription, getSubscriptionInvoices, payMemberSubscription,
   subscriptionIsActive,
 } from "../../repository/MemberSubscriptionRepository"
 
@@ -46,7 +46,7 @@ export const MemberSubscriptionResolvers = {
     return subscriptionIsActive(ctx, subscription.id)
   },
 
-  async bills(subscription: any, args: any, ctx: Context) {
-    return getSubscriptionBills(ctx, subscription.id)
+  async invoices(subscription: any, args: any, ctx: Context) {
+    return getSubscriptionInvoices(ctx, subscription.id)
   },
 }

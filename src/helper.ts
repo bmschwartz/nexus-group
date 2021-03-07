@@ -1,4 +1,4 @@
-import {BillStatus} from "@prisma/client"
+import { InvoiceStatus } from "@prisma/client"
 
 export async function asyncForEach(array: any[], callback: CallableFunction) {
   for (let index = 0; index < array.length; index++) {
@@ -10,18 +10,20 @@ export function getAllSettledResults(results: PromiseSettledResult<any>[]) {
   return results.map((result: PromiseSettledResult<any>) => result.status === "fulfilled" ? result.value : null).filter(Boolean)
 }
 
-export function convertToLocalBillStatus(billStatus: string): BillStatus | null {
-  switch (billStatus) {
-    case "draft":
-      return BillStatus.DRAFT
+export function convertToLocalInvoiceStatus(status: string): InvoiceStatus | null {
+  switch (status.toLowerCase()) {
     case "new":
-      return BillStatus.NEW
-    case "sent":
-      return BillStatus.SENT
+      return InvoiceStatus.NEW
     case "paid":
-      return BillStatus.PAID
+      return InvoiceStatus.PAID
+    case "confirmed":
+      return InvoiceStatus.CONFIRMED
     case "complete":
-      return BillStatus.COMPLETE
+      return InvoiceStatus.COMPLETE
+    case "invalid":
+      return InvoiceStatus.INVALID
+    case "expired":
+      return InvoiceStatus.EXPIRED
   }
 
   return null
