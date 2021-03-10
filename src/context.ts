@@ -11,19 +11,22 @@ export const billing = new BillingClient({ prisma, messenger })
 
 export interface Context {
   userId?: string
+  userType?: string
   prisma: PrismaClient
   messenger: MessageClient
   billing: BillingClient
 }
 
 export function createContext({ req }: any): Context {
-  let { userid: userId } = req.headers
+  let { userid: userId, usertype: userType } = req.headers
 
   userId = (userId !== "undefined" && userId !== undefined) ? userId : undefined
+  userType = (userType !== "undefined" && userType !== undefined) ? userType : undefined
 
   return {
     prisma,
     userId,
+    userType,
     messenger,
     billing,
   }
