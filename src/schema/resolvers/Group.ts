@@ -13,6 +13,15 @@ const GROUP_DESCRIPTION_VALIDATION = {
 }
 
 export const GroupQuery = {
+  async myGroup(parent: any, args: any, ctx: Context) {
+    const membership = await ctx.prisma.groupMembership.findFirst({
+      where: { memberId: ctx.userId, role: { in: [MembershipRole.ADMIN, MembershipRole.TRADER] } },
+      include: { group: true },
+    })
+
+    return membership ? membership["group"] : null
+  },
+
   async allGroups(parent: any, args: any, ctx: Context) {
     return ctx.prisma.group.findMany()
   },
