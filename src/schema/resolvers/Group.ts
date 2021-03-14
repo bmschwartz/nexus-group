@@ -13,6 +13,8 @@ const GROUP_DESCRIPTION_VALIDATION = {
   maxLength: 5000,
 }
 
+const MAX_GROUP_SUBSCRIPTION_OPTIONS = 10
+
 interface GroupSubscriptionInput {
   fee: number
   duration: number
@@ -23,7 +25,13 @@ export const GroupQuery = {
   async myGroup(parent: any, args: any, ctx: Context) {
     const membership = await ctx.prisma.groupMembership.findFirst({
       where: { memberId: ctx.userId, role: { in: [MembershipRole.ADMIN, MembershipRole.TRADER] } },
-      include: { group: true },
+      include: {
+        group: {
+          include: {
+            subscriptionOptions: true,
+          },
+        },
+      },
     })
 
     return membership ? membership["group"] : null
@@ -93,6 +101,12 @@ export const GroupMutations = {
       status: MembershipStatus.APPROVED,
       role: MembershipRole.ADMIN,
     }
+
+    if (subscriptionOptions && subscriptionOptions.length > MAX_GROUP_SUBSCRIPTION_OPTIONS) {
+      logger.error({ message: `Tried to create more than ${MAX_GROUP_SUBSCRIPTION_OPTIONS} subscription options`})
+      throw new Error(`Maximum of ${MAX_GROUP_SUBSCRIPTION_OPTIONS} subscription options allowed`)
+    }
+
     const groupSubscriptionOptions = subscriptionOptions.map(option => {
       return createSubscriptionOption(option)
     })
@@ -110,7 +124,7 @@ export const GroupMutations = {
         members: {
           create: owner,
         },
-        groupSubscriptions: {
+        subscriptionOptions: {
           create: groupSubscriptionOptions,
         },
       },

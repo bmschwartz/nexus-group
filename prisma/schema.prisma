@@ -20,7 +20,7 @@ model Group {
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @default(now())
   members             GroupMembership[]
-  groupSubscriptions  GroupSubscription[]
+  subscriptionOptions GroupSubscription[]
 }
 
 model GroupMembership {

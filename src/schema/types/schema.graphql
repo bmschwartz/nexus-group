@@ -199,7 +199,7 @@ type GroupSubscription @key(fields: "id") {
   id: ID!
   group: Group!
   active: Boolean!
-  fee: Float!
+  price: Float!
   duration: Int!
   description: String
   createdAt: DateTime!
