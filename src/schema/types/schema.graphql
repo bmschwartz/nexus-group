@@ -48,20 +48,26 @@ type Group @key(fields: "id") {
   active: Boolean!
   description: String!
   members(input: GroupMembersInput): GroupMembersResult
+  subscriptionOptions: [GroupSubscription!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
 input CreateGroupInput {
   name: String!
-  description: String!
-  telegram: String
-  discord: String
   email: String
-  membershipFee: Float!
-  payInPlatform: Boolean!
-  payoutCurrency: String
+  discord: String
+  telegram: String
+  description: String!
   payoutAddress: String
+  payInPlatform: Boolean!
+  subscriptionOptions: [GroupSubscriptionInput!]!
+}
+
+input GroupSubscriptionInput {
+  fee: Float!
+  duration: Int!
+  description: String
 }
 
 input RenameGroupInput {
@@ -194,6 +200,8 @@ type GroupSubscription @key(fields: "id") {
   group: Group!
   active: Boolean!
   fee: Float!
+  duration: Int!
+  description: String
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -201,6 +209,8 @@ type GroupSubscription @key(fields: "id") {
 input CreateGroupSubscriptionInput {
   groupId: ID!
   fee: Float!
+  duration: Int!
+  description: String
 }
 
 type CreateGroupSubscriptionResult {

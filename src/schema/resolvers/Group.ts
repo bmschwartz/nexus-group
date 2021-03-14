@@ -1,6 +1,7 @@
 import { Context } from "../../context"
 import { PrismaClient, MembershipStatus, MembershipRole } from "@prisma/client"
 import { getGroupMembers } from "../../repository/GroupRepository"
+import { logger } from "../../logger"
 
 const GROUP_NAME_VALIDATION = {
   minLength: 1,
@@ -10,6 +11,12 @@ const GROUP_NAME_VALIDATION = {
 const GROUP_DESCRIPTION_VALIDATION = {
   minLength: 0,
   maxLength: 5000,
+}
+
+interface GroupSubscriptionInput {
+  fee: number
+  duration: number
+  description?: string | null
 }
 
 export const GroupQuery = {
@@ -57,9 +64,8 @@ export const GroupMutations = {
         telegram,
         discord,
         email,
-        membershipFee,
+        subscriptionOptions,
         payInPlatform,
-        payoutCurrency,
         payoutAddress,
       },
     } = args
@@ -75,11 +81,21 @@ export const GroupMutations = {
       validateEmail(email)
     }
 
-    const group = await ctx.prisma.group.findUnique({ where: { name } })
+    const existingGroup = await ctx.prisma.group.findUnique({ where: { name } })
 
-    if (group) {
+    if (existingGroup) {
       return new Error("A group by that name already exists")
     }
+
+    const owner = {
+      active: true,
+      memberId: ctx.userId,
+      status: MembershipStatus.APPROVED,
+      role: MembershipRole.ADMIN,
+    }
+    const groupSubscriptionOptions = subscriptionOptions.map(option => {
+      return createSubscriptionOption(option)
+    })
 
     return ctx.prisma.group.create({
       data: {
@@ -90,21 +106,12 @@ export const GroupMutations = {
         discord,
         payInPlatform,
         payoutAddress,
-        payoutCurrency,
         active: true,
         members: {
-          create: {
-            active: true,
-            memberId: ctx.userId,
-            status: MembershipStatus.APPROVED,
-            role: MembershipRole.ADMIN,
-          },
+          create: owner,
         },
-        groupSubscription: {
-          create: {
-            active: true,
-            price: membershipFee || 0,
-          },
+        groupSubscriptions: {
+          create: groupSubscriptionOptions,
         },
       },
     })
@@ -152,6 +159,23 @@ export const GroupMutations = {
       data: { active: false },
     })
   },
+}
+
+function createSubscriptionOption(subscription: GroupSubscriptionInput) {
+  const { fee, duration, description } = subscription
+  let error = ""
+  if (fee < 0) {
+    error = "Attempting to create a subscription option with negative fee"
+  } else if (duration < 1) {
+    error = "Attempting to create a subscription option duration below 1"
+  }
+
+  if (error) {
+    logger.error({ message: error })
+    throw new Error(error)
+  }
+
+  return { active: true, price: fee, duration, description: description || "" }
 }
 
 export const GroupResolvers = {

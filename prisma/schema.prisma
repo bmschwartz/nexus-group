@@ -8,20 +8,19 @@ datasource db {
 }
 
 model Group {
-  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name              String                  @unique
-  description       String
-  active            Boolean                 @default(true)
-  telegram          String?
-  discord           String?
-  email             String?
-  payoutAddress     String?
-  payoutCurrency    PayoutCurrency          @default(BTC)
-  payInPlatform     Boolean                 @default(false)
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @default(now())
-  members           GroupMembership[]
-  groupSubscription GroupSubscription?
+  id                  String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String                  @unique
+  description         String
+  active              Boolean                 @default(true)
+  telegram            String?
+  discord             String?
+  email               String?
+  payoutAddress       String?
+  payInPlatform       Boolean                 @default(false)
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @default(now())
+  members             GroupMembership[]
+  groupSubscriptions  GroupSubscription[]
 }
 
 model GroupMembership {
@@ -42,7 +41,9 @@ model GroupMembership {
 model GroupSubscription {
   id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   groupId             String               @db.Uuid
+  duration            Int                  @default(1)
   price               Float
+  description         String?
   active              Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @default(now())
