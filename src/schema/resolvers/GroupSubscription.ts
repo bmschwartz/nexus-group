@@ -8,7 +8,7 @@ import {
 } from "../../repository/GroupSubscriptionRepository";
 
 export const GroupSubscriptionResolvers = {
-  async members(subscription: any, args: any, ctx: Context) {
+  async memberCount(subscription: any, args: any, ctx: Context) {
     return getSubscriptionMemberCount(ctx, subscription.id)
   },
 }
