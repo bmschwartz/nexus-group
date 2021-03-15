@@ -37,7 +37,7 @@ export async function createSubscription(ctx: Context, input: CreateSubscription
     })
 
     await ctx.prisma.groupSubscription.create({
-      data: { groupId: myMembership.groupId, price: fee, duration, description },
+      data: { active: true, groupId: myMembership.groupId, price: fee, duration, description },
     })
   } catch (e) {
     logger.error({ message: "Error creating subscription option", fee, duration, description, error: e.message })
