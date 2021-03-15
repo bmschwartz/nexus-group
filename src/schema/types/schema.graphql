@@ -32,6 +32,9 @@ extend type Mutation {
 
   # GroupSubscription
   createGroupSubscription(input: CreateGroupSubscriptionInput!): CreateGroupSubscriptionResult
+  updateGroupSubscription(input: UpdateGroupSubscriptionInput!): UpdateGroupSubscriptionResult
+  deleteGroupSubscription(input: DeleteGroupSubscriptionInput!): DeleteGroupSubscriptionResult
+  toggleSubscriptionActive(input: ToggleSubscriptionActiveInput!): ToggleSubscriptionActiveResult
 
   # MemberSubscription
   payMemberSubscription(input: PayMemberSubscriptionInput!): PayMemberSubscriptionResult
@@ -202,12 +205,12 @@ type GroupSubscription @key(fields: "id") {
   price: Float!
   duration: Int!
   description: String
+  memberCount: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
 input CreateGroupSubscriptionInput {
-  groupId: ID!
   fee: Float!
   duration: Int!
   description: String
@@ -217,6 +220,36 @@ type CreateGroupSubscriptionResult {
   success: Boolean!
   error: String
 }
+
+input UpdateGroupSubscriptionInput {
+  fee: Float!
+  subscriptionId: ID!
+  description: String
+}
+
+type UpdateGroupSubscriptionResult {
+  success: Boolean!
+  error: String
+}
+
+input DeleteGroupSubscriptionInput {
+  subscriptionId: ID!
+}
+
+type DeleteGroupSubscriptionResult {
+  success: Boolean!
+  error: String
+}
+
+input ToggleSubscriptionActiveInput {
+  subscriptionId: ID!
+}
+
+type ToggleSubscriptionActiveResult {
+  success: Boolean!
+  error: String
+}
+
 
 ########################
 #  MemberSubscription
