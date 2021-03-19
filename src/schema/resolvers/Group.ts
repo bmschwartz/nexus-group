@@ -208,6 +208,20 @@ export const GroupResolvers = {
 
     return getGroupMembers(ctx, { groupId, limit, offset, roles, statuses })
   },
+
+  subscriptionOptions(group: any, args: any, ctx: Context) {
+    const { id: groupId } = group
+
+    try {
+      return ctx.prisma.groupSubscription.findMany({ where: { groupId } })
+    } catch (e) {
+      logger.error({
+        error: e.meta,
+        message: `Error getting subscription options for ${groupId}`,
+      })
+      throw e
+    }
+  },
 }
 
 export const validateGroupExists = async (

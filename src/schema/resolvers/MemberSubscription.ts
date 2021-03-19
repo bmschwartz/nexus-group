@@ -6,6 +6,8 @@ import {
   cancelMemberSubscription, getSubscriptionInvoices, payMemberSubscription,
   subscriptionIsActive,
 } from "../../repository/MemberSubscriptionRepository"
+import {getGroupSubscription} from "../../repository/GroupSubscriptionRepository";
+import {logger} from "../../logger";
 
 export const MemberSubscriptionMutations = {
   async payMemberSubscription(_: any, args: any, ctx: Context) {
@@ -40,6 +42,18 @@ export const MemberSubscriptionResolvers = {
         id: subscription.id,
       },
     })
+  },
+
+  async groupSubscription(subscription: any, args: any, ctx: Context) {
+    try {
+      return getGroupSubscription(ctx, subscription.groupSubscriptionId)
+    } catch (e) {
+      logger.error({
+        error: e.meta,
+        message: `Error getting group subscription from subscription [${subscription.id}]`,
+      })
+      throw e
+    }
   },
 
   async active(subscription: any, args: any, ctx: Context) {

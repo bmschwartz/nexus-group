@@ -23,6 +23,9 @@ export const myMembership = async (ctx: Context, memberId: string, groupId: stri
           groupId,
         },
       },
+      include: {
+        subscription: true,
+      },
     })
   } catch (e) {
     logger.info({ message: "[myMembership] Error getting membership", groupId, memberId })
