@@ -23,6 +23,7 @@ extend type Mutation {
   disableGroup(input: DisableGroupInput!): Group
 
   # GroupMembership
+  joinGroup(input: JoinGroupInput!): JoinGroupResult
   requestGroupAccess(input: RequestGroupAccessInput!): GroupMembership
   createMembership(input: CreateGroupMembershipInput!): CreateGroupMembershipResult
   updateMembershipRole(input: UpdateMembershipRoleInput!): GroupMembership
@@ -147,6 +148,15 @@ input MyMembershipsInput {
   statuses: [MembershipStatus!]
 }
 
+input JoinGroupInput {
+  groupId: ID!
+}
+
+type JoinGroupResult {
+  membershipId: ID
+  error: String
+}
+
 input RequestGroupAccessInput {
   groupId: ID!
 }
@@ -163,7 +173,7 @@ input CreateGroupMembershipInput {
 }
 
 type CreateGroupMembershipResult {
-  success: Boolean!
+  membershipId: ID
   error: String
 }
 

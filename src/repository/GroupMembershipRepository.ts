@@ -10,7 +10,7 @@ export interface CreateGroupMembershipInput {
 }
 
 export interface CreateGroupMembershipResult {
-  success: boolean
+  membershipId?: string
   error?: string
 }
 
@@ -37,13 +37,16 @@ export const myMembership = async (ctx: Context, memberId: string, groupId: stri
 export const createMembership = async (
   ctx: Context,
   { groupId, memberId, role, status }: CreateGroupMembershipInput,
-): Promise<CreateGroupMembershipResult | Error> => {
+): Promise<CreateGroupMembershipResult> => {
+  logger.info({ message: "Creating membership", groupId, memberId, role, status })
+
   const existingMembership = await ctx.prisma.groupMembership.findUnique({
     where: { GroupMembership_memberId_groupId_key: { memberId, groupId } },
   })
 
   if (existingMembership) {
-    return { success: false, error: "This user already belongs to the group" }
+    logger.error({ message: "Trying to create a group membership for an existing member", groupId, memberId, role, status })
+    return { error: "Already a group member" }
   }
 
   let membership: GroupMembership
@@ -59,13 +62,15 @@ export const createMembership = async (
     })
 
     if (!membership) {
-      return { success: false, error: "Error creating the membership" }
+      logger.error({ message: "Did not create a membership", groupId, memberId, role, status })
+      return { error: "Error creating the membership" }
     }
   } catch (e) {
-    return { success: false, error: "Error creating the membership" }
+    logger.error({ message: "Error creating membership", error: e.meta, groupId, memberId, role, status })
+    return { error: "Error creating the membership" }
   }
 
-  return { success: true }
+  return { membershipId: membership.id }
 }
 
 export const validateMembershipExists = async (

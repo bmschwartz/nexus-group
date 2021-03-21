@@ -70,6 +70,14 @@ export const GroupMembershipQuery = {
 }
 
 export const GroupMembershipMutations = {
+  async joinGroup(_: any, args: any, ctx: Context) {
+    const {
+      input: { groupId },
+    } = args
+
+    return createMembership(ctx, { groupId, memberId: ctx.userId, role: "MEMBER", status: "APPROVED" })
+  },
+
   async createMembership(_: any, args: any, ctx: Context) {
     const {
       input: {groupId, memberId, role, status},
