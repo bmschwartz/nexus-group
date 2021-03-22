@@ -81,8 +81,9 @@ model SubscriptionInvoice {
   id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   subscriptionId  String             @db.Uuid
   email           String
-  amountPaid      Decimal?
-  amountCharged   Decimal?
+  btcPaid         Decimal?
+  btcPrice        Decimal?
+  usdPrice        Decimal
   status          InvoiceStatus
 
   remoteId        String?

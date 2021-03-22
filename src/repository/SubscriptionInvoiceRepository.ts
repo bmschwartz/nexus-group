@@ -23,10 +23,7 @@ export interface LatestInvoicePaidInput {
 export interface InvoiceUpdateInput {
   invoiceId: string
   status: string
-  amountPaid: number
 }
-
-const SUBSCRIPTION_DURATION_MONTHS = 1
 
 export async function createInvoice(
   prisma: PrismaClient,
@@ -81,10 +78,9 @@ export async function createInvoice(
 
     invoice = await prisma.subscriptionInvoice.create({
       data: {
-        amountPaid: 0,
         subscriptionId,
-        amountCharged: totalCost,
         email: userEmail,
+        usdPrice: totalCost,
         status: InvoiceStatus.NEW,
         periodStart: memberSubscription.endDate,
       },
@@ -152,6 +148,12 @@ export async function latestInvoiceIsPaid(
   return invoice.status === InvoiceStatus.COMPLETE
 }
 
+export async function getSubscriptionDuration(prisma: PrismaClient, invoice: SubscriptionInvoice): Promise<number> {
+  await prisma.memberSubscription.findUnique({
+    where: { id: invoice.subscriptionId },
+  })
+}
+
 export async function updateInvoice(
   prisma: PrismaClient,
   remoteInvoice: btcpay.Invoice,
@@ -160,6 +162,7 @@ export async function updateInvoice(
     orderId: id,
     currentTime: updateTime,
     btcPaid,
+    btcPrice,
     status,
   } = remoteInvoice
 
@@ -176,7 +179,10 @@ export async function updateInvoice(
   }
 
   if (btcPaid) {
-    updateData["amountPaid"] = Number(btcPaid)
+    updateData["btcPaid"] = Number(btcPaid)
+  }
+  if (btcPrice) {
+    updateData["btcPrice"] = Number(btcPrice)
   }
 
   if (localStatus === InvoiceStatus.COMPLETE) {
@@ -188,8 +194,9 @@ export async function updateInvoice(
       updateData["periodStart"] = new Date()
     }
 
+    const subscriptionDuration = await getSubscriptionDuration(prisma, localInvoice)
     const periodEnd = new Date(updateData["periodStart"])
-    periodEnd.setMonth(periodEnd.getMonth() + SUBSCRIPTION_DURATION_MONTHS)
+    periodEnd.setMonth(periodEnd.getMonth() + subscriptionDuration)
     updateData["periodEnd"] = periodEnd
   }
 

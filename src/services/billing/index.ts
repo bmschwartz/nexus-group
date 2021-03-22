@@ -67,7 +67,7 @@ export class BillingClient {
       orderId: invoice.id,
       buyerEmail: invoice.email,
       fullNotifications: true,
-      price: invoice.amountCharged,
+      price: Number(invoice.usdPrice),
       redirectUrl: btcPayRedirectUrl,
       notificationURL: btcPayNotificationUrl,
     })
