@@ -3,8 +3,8 @@ import { Context } from "../../context"
 // @ts-ignore
 import {
   activateMemberSubscription,
-  cancelMemberSubscription, getSubscriptionInvoices, payMemberSubscription,
-  subscriptionIsActive,
+  cancelMemberSubscription, getSubscriptionInvoices, payMemberSubscription, resetPayment,
+  subscriptionIsActive, switchSubscriptionOption,
 } from "../../repository/MemberSubscriptionRepository"
 import {getGroupSubscription} from "../../repository/GroupSubscriptionRepository";
 import {logger} from "../../logger";
@@ -12,10 +12,18 @@ import {logger} from "../../logger";
 export const MemberSubscriptionMutations = {
   async payMemberSubscription(_: any, args: any, ctx: Context) {
     const {
-      input: { groupId, membershipId },
+      input: { groupId, membershipId, subscriptionOptionId },
     } = args
 
-    return payMemberSubscription(ctx, { groupId, membershipId })
+    return payMemberSubscription(ctx, { groupId, membershipId, subscriptionOptionId })
+  },
+
+  async resetPayment(_: any, args: any, ctx: Context) {
+    const {
+      input: { invoiceId },
+    } = args
+
+    return resetPayment(ctx, { invoiceId })
   },
 
   async activateMemberSubscription(_: any, args: any, ctx: Context) {
@@ -32,6 +40,14 @@ export const MemberSubscriptionMutations = {
     } = args
 
     return cancelMemberSubscription(ctx, { subscriptionId })
+  },
+
+  async switchSubscriptionOption(_: any, args: any, ctx: Context) {
+    const {
+      input: { membershipId, subscriptionOptionId },
+    } = args
+
+    return switchSubscriptionOption(ctx, { membershipId, subscriptionOptionId })
   },
 }
 

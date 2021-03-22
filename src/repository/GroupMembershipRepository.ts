@@ -1,12 +1,14 @@
 import {GroupMembership, MembershipRole, MembershipStatus, PrismaClient} from "@prisma/client";
 import { Context } from "../context";
 import {logger} from "../logger";
+import {createOrGetMemberSubscription} from "./MemberSubscriptionRepository";
 
 export interface CreateGroupMembershipInput {
   groupId: string
   memberId: string
   role: MembershipRole
   status: MembershipStatus
+  subscriptionOptionId?: string
 }
 
 export interface CreateGroupMembershipResult {
@@ -36,7 +38,7 @@ export const myMembership = async (ctx: Context, memberId: string, groupId: stri
 
 export const createMembership = async (
   ctx: Context,
-  { groupId, memberId, role, status }: CreateGroupMembershipInput,
+  { groupId, memberId, role, status, subscriptionOptionId }: CreateGroupMembershipInput,
 ): Promise<CreateGroupMembershipResult> => {
   logger.info({ message: "Creating membership", groupId, memberId, role, status })
 
@@ -68,6 +70,14 @@ export const createMembership = async (
   } catch (e) {
     logger.error({ message: "Error creating membership", error: e.meta, groupId, memberId, role, status })
     return { error: "Error creating the membership" }
+  }
+
+  if (subscriptionOptionId) {
+    try {
+      await createOrGetMemberSubscription(ctx, { groupId, membershipId: membership.id, subscriptionOptionId })
+    } catch (e) {
+      logger.error({ message: "Error creating MemberSubscription", groupId, membershipId: membership.id, subscriptionOptionId })
+    }
   }
 
   return { membershipId: membership.id }

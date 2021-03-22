@@ -4,6 +4,7 @@ import {PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus} fro
 import { Context } from "../context";
 import { BillingClient, PLATFORM_SUBSCRIPTION_FEE_USD } from "../services/billing";
 import {convertToLocalInvoiceStatus, getUserEmailById} from "../helper";
+import {logger} from "../logger";
 
 export interface CreateSubscriptionInvoiceInput {
   subscriptionId: string
@@ -62,6 +63,14 @@ export async function createInvoice(
   } catch (e) {
     console.error("Error getting membership")
     return null
+  }
+
+  try {
+    await prisma.subscriptionInvoice.deleteMany({
+      where: { subscriptionId, status: InvoiceStatus.NEW },
+    })
+  } catch (e) {
+    logger.error({ message: "Error deleting existing new invoice for this subscription"})
   }
 
   try {

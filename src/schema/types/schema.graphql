@@ -38,7 +38,9 @@ extend type Mutation {
   toggleSubscriptionActive(input: ToggleSubscriptionActiveInput!): ToggleSubscriptionActiveResult
 
   # MemberSubscription
+  resetPayment(input: ResetPaymentInput!): ResetPaymentResult
   payMemberSubscription(input: PayMemberSubscriptionInput!): PayMemberSubscriptionResult
+  switchSubscriptionOption(input: SwitchSubscriptionOptionInput!): SwitchSubscriptionOptionResult
   cancelMemberSubscription(input: CancelMemberSubscriptionInput!): CancelMemberSubscriptionResult
   activateMemberSubscription(input: ActivateMemberSubscriptionInput!): ActivateMemberSubscriptionResult
 }
@@ -150,6 +152,7 @@ input MyMembershipsInput {
 
 input JoinGroupInput {
   groupId: ID!
+  subscriptionOptionId: ID
 }
 
 type JoinGroupResult {
@@ -278,9 +281,18 @@ type MemberSubscription @key(fields: "id") {
   invoices: [SubscriptionInvoice!]!
 }
 
+input ResetPaymentInput {
+  invoiceId: ID!
+}
+
+type ResetPaymentResult {
+  error: String
+}
+
 input PayMemberSubscriptionInput {
   groupId: ID!
   membershipId: ID!
+  subscriptionOptionId: ID!
 }
 
 type PayMemberSubscriptionResult {
@@ -293,6 +305,16 @@ input ActivateMemberSubscriptionInput {
 }
 
 type ActivateMemberSubscriptionResult {
+  success: Boolean!
+  error: String
+}
+
+input SwitchSubscriptionOptionInput {
+  membershipId: ID!
+  subscriptionOptionId: ID!
+}
+
+type SwitchSubscriptionOptionResult {
   success: Boolean!
   error: String
 }

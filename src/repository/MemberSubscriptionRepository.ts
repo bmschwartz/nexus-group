@@ -1,20 +1,30 @@
 import { Context } from "../context";
 import {PrismaClient, SubscriptionInvoice, MemberSubscription} from "@prisma/client";
 import {createInvoice} from "./SubscriptionInvoiceRepository";
-import {getUserEmailById} from "../helper";
+import {logger} from "../logger";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
   groupId: string
+  subscriptionOptionId?: string
 }
 
 export interface PayMemberSubscriptionInput {
   groupId: string
   membershipId: string
+  subscriptionOptionId?: string
 }
 
 export interface PayMemberSubscriptionResult {
   invoiceId?: string
+  error?: string
+}
+
+export interface ResetPaymentInput {
+  invoiceId: string
+}
+
+export interface ResetPaymentResult {
   error?: string
 }
 
@@ -36,14 +46,24 @@ export interface CancelMemberSubscriptionResult {
   error?: string
 }
 
+export interface SwitchSubscriptionOptionInput {
+  membershipId: string
+  subscriptionOptionId: string
+}
+
+export interface SwitchSubscriptionOptionResult {
+  success: boolean
+  error?: string
+}
+
 export async function payMemberSubscription(
   ctx: Context,
-  { membershipId, groupId }: PayMemberSubscriptionInput,
+  { membershipId, groupId, subscriptionOptionId }: PayMemberSubscriptionInput,
 ): Promise<PayMemberSubscriptionResult> {
   let invoice: SubscriptionInvoice
 
   try {
-    const memberSubscription = await createOrGetMemberSubscription(ctx, { membershipId, groupId })
+    const memberSubscription = await createOrGetMemberSubscription(ctx, { membershipId, groupId, subscriptionOptionId })
 
     if (!memberSubscription) {
       return { error: "Subscription does not exist" }
@@ -64,6 +84,21 @@ export async function payMemberSubscription(
   }
 
   return { invoiceId: invoice.remoteId }
+}
+
+export async function resetPayment(
+  ctx: Context,
+  { invoiceId }: ResetPaymentInput,
+): Promise<PayMemberSubscriptionResult> {
+  try {
+    await ctx.prisma.subscriptionInvoice.deleteMany({
+      where: { remoteId: invoiceId },
+    })
+  } catch (e) {
+    logger.error({ message: "Error deleting invoice", invoiceId, error: e.meta })
+    return { error: "Error deleting invoice" }
+  }
+  return {}
 }
 
 export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
@@ -109,14 +144,52 @@ export async function cancelMemberSubscription(
   return { success: true }
 }
 
+export async function switchSubscriptionOption(
+  ctx: Context,
+  { membershipId, subscriptionOptionId }: SwitchSubscriptionOptionInput,
+): Promise<SwitchSubscriptionOptionResult> {
+  console.log(membershipId, subscriptionOptionId)
+  let memberSubscription: MemberSubscription
+  try {
+    memberSubscription = await ctx.prisma.memberSubscription.findFirst({
+      where: { groupMembershipId: membershipId },
+    })
+  } catch (e) {
+    logger.error({ message: "MemberSubscription error", error: e.meta, membershipId, subscriptionOptionId })
+    return { success: false, error: "Can't find member subscription"}
+  }
+
+  try {
+    await ctx.prisma.memberSubscription.update({
+      where: { id: memberSubscription.id },
+      data: { groupSubscriptionId: subscriptionOptionId },
+    })
+  } catch (e) {
+    logger.error({ message: "Change member subscription error", error: e.meta, membershipId, subscriptionOptionId })
+    return { success: false, error: "Can't update member subscription"}
+  }
+  return { success: true }
+}
+
 export async function createOrGetMemberSubscription(
   ctx: Context, input: CreateMemberSubscriptionInput,
 ): Promise<MemberSubscription | null> {
-  const { membershipId, groupId } = input
+  const { membershipId, groupId, subscriptionOptionId } = input
 
-  const groupSubscription = await ctx.prisma.groupSubscription.findFirst({
-    where: { groupId, active: true },
-  })
+  let groupSubscription
+  try {
+    if (subscriptionOptionId) {
+      groupSubscription = await ctx.prisma.groupSubscription.findUnique({
+        where: { id: subscriptionOptionId },
+      })
+    } else {
+      groupSubscription = await ctx.prisma.groupSubscription.findFirst({
+        where: { groupId, active: true },
+      })
+    }
+  } catch (e) {
+    logger.error({ message: "Error getting groupSubscription", groupId, subscriptionOptionId })
+  }
 
   if (!groupSubscription) {
     return null
@@ -145,6 +218,8 @@ export async function createOrGetMemberSubscription(
     console.error(e)
     return null
   }
+
+  logger.info({ message: "Created MemberSubscription", membershipId, subscriptionOptionId: groupSubscription.id, groupId })
 
   return memberSubscription
 }
