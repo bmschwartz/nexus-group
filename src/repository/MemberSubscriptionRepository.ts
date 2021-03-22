@@ -1,7 +1,7 @@
 import { Context } from "../context";
-import {PrismaClient, SubscriptionInvoice, MemberSubscription, InvoiceStatus} from "@prisma/client";
-import {createInvoice} from "./SubscriptionInvoiceRepository";
-import {logger} from "../logger";
+import { PrismaClient, SubscriptionInvoice, MemberSubscription, InvoiceStatus } from "@prisma/client";
+import { createInvoice } from "./SubscriptionInvoiceRepository";
+import { logger } from "../logger";
 
 export interface CreateMemberSubscriptionInput {
   membershipId: string
@@ -56,6 +56,12 @@ export interface SwitchSubscriptionOptionResult {
   error?: string
 }
 
+export interface UpdateSubscriptionDatesInput {
+  subscriptionId: string
+  endDate: Date
+  startDate?: Date
+}
+
 export async function payMemberSubscription(
   ctx: Context,
   { membershipId, groupId, subscriptionOptionId }: PayMemberSubscriptionInput,
@@ -70,7 +76,7 @@ export async function payMemberSubscription(
     }
 
     const groupSubscription = await ctx.prisma.groupSubscription.findUnique({
-      where: {id: memberSubscription.groupSubscriptionId},
+      where: { id: memberSubscription.groupSubscriptionId },
     })
 
     if (!groupSubscription) {
@@ -104,7 +110,7 @@ export async function resetPayment(
 export async function setSubscriptionPaid(prisma: PrismaClient, subscriptionId: string) {
   try {
     await prisma.memberSubscription.update({
-      where: {id: subscriptionId},
+      where: { id: subscriptionId },
       data: { recurring: true },
     })
   } catch (e) {
@@ -119,7 +125,7 @@ export async function activateMemberSubscription(
 ): Promise<ActivateMemberSubscriptionResult> {
   try {
     await ctx.prisma.memberSubscription.update({
-      where: {id: subscriptionId},
+      where: { id: subscriptionId },
       data: { recurring: true },
     })
   } catch (e) {
@@ -134,8 +140,8 @@ export async function cancelMemberSubscription(
 ): Promise<CancelMemberSubscriptionResult> {
   try {
     await ctx.prisma.memberSubscription.update({
-      where: {id: subscriptionId},
-      data: {recurring: false},
+      where: { id: subscriptionId },
+      data: { recurring: false },
     })
   } catch (e) {
     return { success: false, error: "Could not cancel subscription" }
@@ -156,7 +162,7 @@ export async function switchSubscriptionOption(
     })
   } catch (e) {
     logger.error({ message: "MemberSubscription error", error: e.meta, membershipId, subscriptionOptionId })
-    return { success: false, error: "Can't find member subscription"}
+    return { success: false, error: "Can't find member subscription" }
   }
 
   try {
@@ -172,7 +178,7 @@ export async function switchSubscriptionOption(
     })
   } catch (e) {
     logger.error({ message: "Change member subscription error", error: e.meta, membershipId, subscriptionOptionId })
-    return { success: false, error: "Can't update member subscription"}
+    return { success: false, error: "Can't update member subscription" }
   }
   return { success: true }
 }
@@ -262,4 +268,38 @@ export async function getSubscriptionInvoices(ctx: Context, subscriptionId: stri
   return ctx.prisma.subscriptionInvoice.findMany({
     where: { subscriptionId },
   })
+}
+
+export async function updateSubscriptionDates(prisma: PrismaClient, input: UpdateSubscriptionDatesInput) {
+  const { subscriptionId, startDate, endDate } = input
+
+  let subscription: MemberSubscription
+  try {
+    subscription = await prisma.memberSubscription.findUnique({
+      where: { id: subscriptionId },
+    })
+  } catch (e) {
+    logger.error({ message: "Error getting memberSubscription", subscriptionId, error: e.meta })
+  }
+
+  if (!subscription) {
+    return
+  }
+
+  const updateData = {
+    endDate,
+  }
+
+  if (!subscription.startDate) {
+    updateData["startDate"] = startDate
+  }
+
+  try {
+    await prisma.memberSubscription.update({
+      where: { id: subscriptionId },
+      data: updateData,
+    })
+  } catch (e) {
+    logger.error({ message: "Error updating MemberSubscription", subscriptionId, updateData, error: e.meta })
+  }
 }

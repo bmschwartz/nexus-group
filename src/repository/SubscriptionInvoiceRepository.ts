@@ -1,11 +1,12 @@
 import * as btcpay from "btcpay"
-import {PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus, PlatformFee} from "@prisma/client";
+import { PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus, PlatformFee } from "@prisma/client";
 
 import { Context } from "../context";
 import { BillingClient } from "../services/billing";
-import {convertToLocalInvoiceStatus, getUserEmailById} from "../helper";
-import {logger} from "../logger";
-import {getActivePlatformFee} from "./PlatformFee";
+import { convertToLocalInvoiceStatus, getUserEmailById } from "../helper";
+import { logger } from "../logger";
+import { getActivePlatformFee } from "./PlatformFee";
+import { updateSubscriptionDates } from "./MemberSubscriptionRepository";
 
 export interface CreateSubscriptionInvoiceInput {
   subscriptionId: string
@@ -24,6 +25,8 @@ export interface InvoiceUpdateInput {
   invoiceId: string
   status: string
 }
+
+const FALLBACK_SUBSCRIPTION_DURATION = 1
 
 export async function createInvoice(
   prisma: PrismaClient,
@@ -68,7 +71,7 @@ export async function createInvoice(
       where: { subscriptionId, status: InvoiceStatus.NEW },
     })
   } catch (e) {
-    logger.error({ message: "Error deleting existing new invoice for this subscription"})
+    logger.error({ message: "Error deleting existing new invoice for this subscription" })
   }
 
   const platformFee: PlatformFee = await getActivePlatformFee(prisma)
@@ -149,9 +152,20 @@ export async function latestInvoiceIsPaid(
 }
 
 export async function getSubscriptionDuration(prisma: PrismaClient, invoice: SubscriptionInvoice): Promise<number> {
-  await prisma.memberSubscription.findUnique({
-    where: { id: invoice.subscriptionId },
-  })
+  try {
+    const memberSubscription = await prisma.memberSubscription.findUnique({
+      where: { id: invoice.subscriptionId },
+      include: {
+        groupSubscription: {
+          select: { duration: true }
+        }
+      }
+    })
+    return memberSubscription.groupSubscription.duration
+  } catch (e) {
+    logger.error({ message: "Error getting memberSubscription", error: e.meta, subscriptionId: invoice.subscriptionId })
+    return FALLBACK_SUBSCRIPTION_DURATION
+  }
 }
 
 export async function updateInvoice(
@@ -186,23 +200,26 @@ export async function updateInvoice(
   }
 
   if (localStatus === InvoiceStatus.COMPLETE) {
-    // const subscriptionEndDateThreshold = new Date()
-    // subscriptionEndDateThreshold.setDate(subscriptionEndDateThreshold.getDate() + NEW_BILL_LEAD_TIME_DAYS)
+    let startDate: Date
     if (localInvoice.periodStart) {
-      updateData["periodStart"] = localInvoice.periodStart > new Date() ? localInvoice.periodStart : new Date()
+      startDate = localInvoice.periodStart > new Date() ? localInvoice.periodStart : new Date()
     } else {
-      updateData["periodStart"] = new Date()
+      startDate = new Date()
     }
+    updateData["periodStart"] = startDate
 
     const subscriptionDuration = await getSubscriptionDuration(prisma, localInvoice)
-    const periodEnd = new Date(updateData["periodStart"])
-    periodEnd.setMonth(periodEnd.getMonth() + subscriptionDuration)
-    updateData["periodEnd"] = periodEnd
+    const endDate = new Date(updateData["periodStart"])
+    endDate.setMonth(endDate.getMonth() + subscriptionDuration)
+    updateData["periodEnd"] = endDate
+
+    await updateSubscriptionDates(prisma, { subscriptionId: localInvoice.subscriptionId, startDate, endDate })
   }
 
   await prisma.subscriptionInvoice.update({
     where: { id: localInvoice.id },
     data: updateData,
   })
+
 
 }
