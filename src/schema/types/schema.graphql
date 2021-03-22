@@ -7,6 +7,9 @@ extend type Query {
   group(input: GroupInput!): Group
   groupExists(input: GroupExistsInput!): Boolean!
 
+  # PlatformFee
+  activePlatformFee: PlatformFee
+
   # GroupMembership
   membership(input: MembershipInput!): GroupMembership!
   myMembership(input: MyMembershipInput!): GroupMembership!
@@ -43,6 +46,17 @@ extend type Mutation {
   switchSubscriptionOption(input: SwitchSubscriptionOptionInput!): SwitchSubscriptionOptionResult
   cancelMemberSubscription(input: CancelMemberSubscriptionInput!): CancelMemberSubscriptionResult
   activateMemberSubscription(input: ActivateMemberSubscriptionInput!): ActivateMemberSubscriptionResult
+}
+
+########################
+#  PlatformFee
+########################
+type PlatformFee @key(fields: "id") {
+  id: ID!
+  price: Float!
+  active: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 ########################
@@ -270,15 +284,16 @@ type ToggleSubscriptionActiveResult {
 type MemberSubscription @key(fields: "id") {
   id: ID!
   active: Boolean!
-  membership: GroupMembership!
-  groupSubscription: GroupSubscription!
   currentPrice: Float
   recurring: Boolean!
   startDate: DateTime
   endDate: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
+  membership: GroupMembership!
   invoices: [SubscriptionInvoice!]!
+  pendingInvoice: SubscriptionInvoice
+  groupSubscription: GroupSubscription!
 }
 
 input ResetPaymentInput {

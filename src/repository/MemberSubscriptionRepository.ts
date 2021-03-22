@@ -1,5 +1,5 @@
 import { Context } from "../context";
-import {PrismaClient, SubscriptionInvoice, MemberSubscription} from "@prisma/client";
+import {PrismaClient, SubscriptionInvoice, MemberSubscription, InvoiceStatus} from "@prisma/client";
 import {createInvoice} from "./SubscriptionInvoiceRepository";
 import {logger} from "../logger";
 
@@ -164,6 +164,12 @@ export async function switchSubscriptionOption(
       where: { id: memberSubscription.id },
       data: { groupSubscriptionId: subscriptionOptionId },
     })
+    await ctx.prisma.subscriptionInvoice.deleteMany({
+      where: {
+        subscriptionId: memberSubscription.id,
+        status: { in: [InvoiceStatus.NEW, InvoiceStatus.EXPIRED, InvoiceStatus.INVALID] },
+      },
+    })
   } catch (e) {
     logger.error({ message: "Change member subscription error", error: e.meta, membershipId, subscriptionOptionId })
     return { success: false, error: "Can't update member subscription"}
@@ -222,6 +228,18 @@ export async function createOrGetMemberSubscription(
   logger.info({ message: "Created MemberSubscription", membershipId, subscriptionOptionId: groupSubscription.id, groupId })
 
   return memberSubscription
+}
+
+export async function pendingInvoice(ctx: Context, subscriptionId: string): Promise<SubscriptionInvoice | null> {
+  try {
+    return ctx.prisma.subscriptionInvoice.findFirst({
+      where: { subscriptionId, status: { not: InvoiceStatus.COMPLETE } },
+      orderBy: { createdAt: "desc" },
+    })
+  } catch (e) {
+    logger.error({ message: "Error getting pending invoice", subscriptionId, error: e.meta })
+    return null
+  }
 }
 
 export async function subscriptionIsActive(ctx: Context, subscriptionId: string): Promise<boolean> {

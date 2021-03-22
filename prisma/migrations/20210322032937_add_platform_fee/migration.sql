@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "PlatformFee" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "price" DOUBLE PRECISION NOT NULL,
+    "active" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY ("id")
+);

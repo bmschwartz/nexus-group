@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model PlatformFee {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  price         Float
+  active        Boolean
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+}
+
 model Group {
   id                  String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                String                  @unique
