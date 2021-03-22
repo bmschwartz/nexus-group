@@ -22,7 +22,6 @@ export interface SendInvoiceResponse {
 }
 
 const NEW_BILL_LEAD_TIME_DAYS = 7
-export const PLATFORM_SUBSCRIPTION_FEE_USD = 2
 
 const btcPayKey = process.env.BTCPAY_KEY
 const btcPayURL = process.env.BTCPAY_URL

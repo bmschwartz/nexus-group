@@ -81,8 +81,8 @@ model SubscriptionInvoice {
   id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   subscriptionId  String             @db.Uuid
   email           String
-  amountPaid      Float
-  amountCharged   Float
+  amountPaid      Decimal?
+  amountCharged   Decimal?
   status          InvoiceStatus
 
   remoteId        String?

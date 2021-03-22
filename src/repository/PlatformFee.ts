@@ -1,8 +1,7 @@
-import {PlatformFee} from "@prisma/client"
-import {Context} from "../context";
+import {PrismaClient, PlatformFee} from "@prisma/client"
 
-export const getActivePlatformFee = (ctx: Context): Promise<PlatformFee> => {
-  return ctx.prisma.platformFee.findFirst({
+export const getActivePlatformFee = (prisma: PrismaClient): Promise<PlatformFee> => {
+  return prisma.platformFee.findFirst({
     where: { active: true },
   })
 }

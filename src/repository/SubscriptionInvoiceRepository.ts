@@ -1,10 +1,11 @@
 import * as btcpay from "btcpay"
-import {PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus} from "@prisma/client";
+import {PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus, PlatformFee} from "@prisma/client";
 
 import { Context } from "../context";
-import { BillingClient, PLATFORM_SUBSCRIPTION_FEE_USD } from "../services/billing";
+import { BillingClient } from "../services/billing";
 import {convertToLocalInvoiceStatus, getUserEmailById} from "../helper";
 import {logger} from "../logger";
+import {getActivePlatformFee} from "./PlatformFee";
 
 export interface CreateSubscriptionInvoiceInput {
   subscriptionId: string
@@ -73,8 +74,10 @@ export async function createInvoice(
     logger.error({ message: "Error deleting existing new invoice for this subscription"})
   }
 
+  const platformFee: PlatformFee = await getActivePlatformFee(prisma)
+
   try {
-    const totalCost = groupSubscription.price + PLATFORM_SUBSCRIPTION_FEE_USD
+    const totalCost = groupSubscription.price + (platformFee.price * groupSubscription.duration)
 
     invoice = await prisma.subscriptionInvoice.create({
       data: {
