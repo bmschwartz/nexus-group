@@ -2,11 +2,11 @@ import * as dotenv from "dotenv"
 import * as btcpay from "btcpay"
 import schedule from "node-schedule"
 import { PrismaClient, SubscriptionInvoice, InvoiceStatus } from "@prisma/client";
+
+import { logger } from "../../logger";
 import { MessageClient } from "../messenger";
-import {createInvoice, updateInvoice} from "../../repository/SubscriptionInvoiceRepository";
-import {logger} from "../../logger";
-import {Context} from "../../context";
-import {getAllSettledResults} from "../../helper";
+import { getAllSettledResults } from "../../helper";
+import { updateInvoice } from "../../repository/SubscriptionInvoiceRepository";
 
 dotenv.config()
 
@@ -20,8 +20,6 @@ export interface SendInvoiceResponse {
   remoteInvoiceId: string
   invoiceStatus: InvoiceStatus
 }
-
-const NEW_BILL_LEAD_TIME_DAYS = 7
 
 const btcPayKey = process.env.BTCPAY_KEY
 const btcPayURL = process.env.BTCPAY_URL
@@ -39,7 +37,6 @@ export class BillingClient {
   _db: PrismaClient
   _messenger: MessageClient
   _btcpayClient: btcpay.BTCPayClient
-  _determineInvoicesJob: schedule.Job
   _updateInvoiceStatusesJob: schedule.Job
 
   constructor({ prisma, messenger }: SubscriptionClientProps) {
@@ -47,12 +44,6 @@ export class BillingClient {
     this._messenger = messenger
 
     this._btcpayClient = new btcpay.BTCPayClient(btcPayURL, btcPayKeyPair, { merchant: btcPayMerchant })
-
-    this._determineInvoicesJob = schedule.scheduleJob(
-      "determineInvoicesToSend",
-      "*/10 * * * * *",
-      this.determineInvoicesToSend(this._db),
-    )
 
     this._updateInvoiceStatusesJob = schedule.scheduleJob(
       "updateInvoiceStatuses",
@@ -85,40 +76,6 @@ export class BillingClient {
     }
 
     await updateInvoice(prisma, invoice)
-  }
-
-  determineInvoicesToSend(prisma: PrismaClient) {
-    return async () => {
-      const subscriptionEndDateThreshold = new Date()
-      subscriptionEndDateThreshold.setDate(subscriptionEndDateThreshold.getDate() + NEW_BILL_LEAD_TIME_DAYS)
-
-      const existingInvoicesForFuturePeriod = await prisma.subscriptionInvoice.findMany({
-        where: { OR: [{ periodStart: null }, { periodStart: { gte: new Date() } }] },
-        select: { subscriptionId: true },
-      })
-      const subscriptionIdsForInvoices = existingInvoicesForFuturePeriod.map(Invoice => Invoice.subscriptionId)
-
-      let subscriptionsEndingSoonWithoutInvoice
-
-      try {
-        subscriptionsEndingSoonWithoutInvoice = await prisma.memberSubscription.findMany({
-          where: {
-            id: { notIn: subscriptionIdsForInvoices },
-            AND: [{ endDate: { gte: new Date() } }, { endDate: { lte: subscriptionEndDateThreshold } }],
-          },
-          select: { id: true, groupSubscription: { select: { price: true } } },
-        })
-      } catch (e) {
-        console.error(e)
-        return
-      }
-
-      await Promise.all(
-        subscriptionsEndingSoonWithoutInvoice.map(async subscription =>
-          createInvoice(prisma, this, { subscriptionId: subscription.id, groupSubscription: subscription.groupSubscription }),
-        ),
-      )
-    }
   }
 
   updateInvoiceStatuses(prisma: PrismaClient) {
