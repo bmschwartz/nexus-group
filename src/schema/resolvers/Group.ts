@@ -216,7 +216,7 @@ export const GroupResolvers = {
       return ctx.prisma.groupSubscription.findMany({ where: { groupId } })
     } catch (e) {
       logger.error({
-        error: e.meta,
+        error: JSON.stringify(e.meta),
         message: `Error getting subscription options for ${groupId}`,
       })
       throw e

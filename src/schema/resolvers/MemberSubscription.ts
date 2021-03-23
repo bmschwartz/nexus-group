@@ -65,7 +65,7 @@ export const MemberSubscriptionResolvers = {
       return getGroupSubscription(ctx, subscription.groupSubscriptionId)
     } catch (e) {
       logger.error({
-        error: e.meta,
+        error: JSON.stringify(e.meta),
         message: `Error getting group subscription from subscription [${subscription.id}]`,
       })
       throw e

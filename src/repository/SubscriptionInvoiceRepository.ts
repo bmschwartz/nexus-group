@@ -89,7 +89,7 @@ export async function createInvoice(
       },
     })
   } catch (e) {
-    console.error("Error creating invoice to send!", e)
+    logger.error({ message: "Error creating invoice to send!", error: JSON.stringify(e.meta) })
     return null
   }
 
@@ -163,7 +163,7 @@ export async function getSubscriptionDuration(prisma: PrismaClient, invoice: Sub
     })
     return memberSubscription.groupSubscription.duration
   } catch (e) {
-    logger.error({ message: "Error getting memberSubscription", error: e.meta, subscriptionId: invoice.subscriptionId })
+    logger.error({ message: "Error getting memberSubscription", error: JSON.stringify(e.meta), subscriptionId: invoice.subscriptionId })
     return FALLBACK_SUBSCRIPTION_DURATION
   }
 }

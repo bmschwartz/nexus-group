@@ -101,7 +101,7 @@ export async function resetPayment(
       where: { remoteId: invoiceId },
     })
   } catch (e) {
-    logger.error({ message: "Error deleting invoice", invoiceId, error: e.meta })
+    logger.error({ message: "Error deleting invoice", invoiceId, error: JSON.stringify(e.meta) })
     return { error: "Error deleting invoice" }
   }
   return {}
@@ -161,7 +161,7 @@ export async function switchSubscriptionOption(
       where: { groupMembershipId: membershipId },
     })
   } catch (e) {
-    logger.error({ message: "MemberSubscription error", error: e.meta, membershipId, subscriptionOptionId })
+    logger.error({ message: "MemberSubscription error", error: JSON.stringify(e.meta), membershipId, subscriptionOptionId })
     return { success: false, error: "Can't find member subscription" }
   }
 
@@ -177,7 +177,7 @@ export async function switchSubscriptionOption(
       },
     })
   } catch (e) {
-    logger.error({ message: "Change member subscription error", error: e.meta, membershipId, subscriptionOptionId })
+    logger.error({ message: "Change member subscription error", error: JSON.stringify(e.meta), membershipId, subscriptionOptionId })
     return { success: false, error: "Can't update member subscription" }
   }
   return { success: true }
@@ -243,7 +243,7 @@ export async function pendingInvoice(ctx: Context, subscriptionId: string): Prom
       orderBy: { createdAt: "desc" },
     })
   } catch (e) {
-    logger.error({ message: "Error getting pending invoice", subscriptionId, error: e.meta })
+    logger.error({ message: "Error getting pending invoice", subscriptionId, error: JSON.stringify(e.meta) })
     return null
   }
 }
@@ -279,7 +279,7 @@ export async function updateSubscriptionDates(prisma: PrismaClient, input: Updat
       where: { id: subscriptionId },
     })
   } catch (e) {
-    logger.error({ message: "Error getting memberSubscription", subscriptionId, error: e.meta })
+    logger.error({ message: "Error getting memberSubscription", subscriptionId, error: JSON.stringify(e.meta) })
   }
 
   if (!subscription) {
@@ -300,6 +300,6 @@ export async function updateSubscriptionDates(prisma: PrismaClient, input: Updat
       data: updateData,
     })
   } catch (e) {
-    logger.error({ message: "Error updating MemberSubscription", subscriptionId, updateData, error: e.meta })
+    logger.error({ message: "Error updating MemberSubscription", subscriptionId, updateData, error: JSON.stringify(e.meta) })
   }
 }

@@ -68,7 +68,7 @@ export const createMembership = async (
       return { error: "Error creating the membership" }
     }
   } catch (e) {
-    logger.error({ message: "Error creating membership", error: e.meta, groupId, memberId, role, status })
+    logger.error({ message: "Error creating membership", error: JSON.stringify(e.meta), groupId, memberId, role, status })
     return { error: "Error creating the membership" }
   }
 
