@@ -28,18 +28,6 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app })
 
-app.get("/payments", async (req: Request, res: Response) => {
-  const ctx = createContext({ req })
-  // try {
-  //   const invoice = await ctx.billing.createInvoice(5)
-  //
-  //   return res.redirect(invoice.url)
-  // } catch (e) {
-  //   return res.status(400)
-  // }
-  return res.sendStatus(200)
-})
-
 app.post("/payments", async (req: Request, res: Response) => {
   const { id: invoiceId } = req.body
   // const webhookSig = req.header("btcpay-sig")
