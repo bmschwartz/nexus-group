@@ -6,6 +6,7 @@ import { Mutation } from "./Mutation"
 import { ExchangeAccountResolvers } from "./ExchangeAccountResolvers"
 import {MemberSubscriptionResolvers} from "./MemberSubscription";
 import {GroupSubscriptionResolvers} from "./GroupSubscription";
+import {SubscriptionInvoiceResolvers} from "./SubscriptionInvoice";
 
 export const resolvers: any = {
   Query,
@@ -16,4 +17,5 @@ export const resolvers: any = {
   ExchangeAccount: ExchangeAccountResolvers,
   GroupSubscription: GroupSubscriptionResolvers,
   MemberSubscription: MemberSubscriptionResolvers,
+  SubscriptionInvoice: SubscriptionInvoiceResolvers,
 }

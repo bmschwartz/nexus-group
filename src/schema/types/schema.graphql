@@ -349,8 +349,8 @@ type CancelMemberSubscriptionResult {
 type SubscriptionInvoice @key(fields: "id") {
   id: ID!
   email: String!
-  btcPaid: Float!
-  btcPrice: Float!
+  btcPaid: Float
+  btcPrice: Float
   usdPrice: Float!
   status: InvoiceStatus!
   subscription: MemberSubscription!
