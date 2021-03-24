@@ -53,7 +53,7 @@ export class BillingClient {
   }
 
   async createInvoice(invoice: SubscriptionInvoice): Promise<btcpay.Invoice> {
-    const result = await this._btcpayClient.create_invoice({
+    return this._btcpayClient.create_invoice({
       currency: "USD",
       orderId: invoice.id,
       buyerEmail: invoice.email,
@@ -62,8 +62,6 @@ export class BillingClient {
       redirectUrl: btcPayRedirectUrl,
       notificationURL: btcPayNotificationUrl,
     })
-    console.log("Invoice url", result.url)
-    return result
   }
 
   async refreshInvoiceData(prisma: PrismaClient, invoiceId: string) {

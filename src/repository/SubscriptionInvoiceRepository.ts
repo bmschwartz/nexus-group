@@ -95,13 +95,12 @@ export async function createInvoice(
 
   let invoiceResponse: btcpay.Invoice | null
   if (invoice) {
-    invoiceResponse = await billingClient.createInvoice(invoice)
-
-    if (!invoiceResponse) {
-      await prisma.subscriptionInvoice.delete({
-        where: { id: invoice.id },
-      })
-      return
+    try {
+      invoiceResponse = await billingClient.createInvoice(invoice)
+    } catch (e) {
+      logger.error({ message: "Error communicating with billing server", error: e })
+      await prisma.subscriptionInvoice.delete({ where: { id: invoice.id } })
+      throw e
     }
 
     const { id: remoteId, token, status } = invoiceResponse

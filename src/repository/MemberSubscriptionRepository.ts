@@ -154,7 +154,6 @@ export async function switchSubscriptionOption(
   ctx: Context,
   { membershipId, subscriptionOptionId }: SwitchSubscriptionOptionInput,
 ): Promise<SwitchSubscriptionOptionResult> {
-  console.log(membershipId, subscriptionOptionId)
   let memberSubscription: MemberSubscription
   try {
     memberSubscription = await ctx.prisma.memberSubscription.findFirst({
