@@ -1,94 +1,57 @@
-import { rule, shield, and, or } from "graphql-shield"
-import { Context } from "../context"
-import {validateActiveUserHasRoleAndStatus} from "../repository/GroupMembershipRepository";
-import {logger} from "../logger";
-
-const isAuthenticated = rule()((parent, args, { userId }) => {
-  return !!userId
-})
-
-const isGroupAdmin = rule({ cache: "strict" })(
-  async (parent, args, ctx: Context, info) => {
-    const {
-      input: { groupId },
-    } = args
-
-    try {
-      return await validateActiveUserHasRoleAndStatus(
-        ctx.prisma,
-        ctx.userId,
-        groupId,
-        "ADMIN",
-        "APPROVED",
-      )
-    } catch (e) {
-      logger.error({ message: "[isGroupAdmin] Error", userId: ctx.userId, groupId })
-    }
-
-    return false
-  },
-)
-
-const isGroupTrader = rule({ cache: "strict" })(
-  async (parent, args, ctx: Context, info) => {
-    const {
-      input: { groupId },
-    } = args
-    const error = await validateActiveUserHasRoleAndStatus(
-      ctx.prisma,
-      ctx.userId,
-      groupId,
-      "TRADER",
-      "APPROVED",
-    )
-
-    return error || true
-  },
-)
-
-const isGroupMember = rule({ cache: "strict" })(
-  async (parent, args, ctx: Context, info) => {
-    const {
-      input: { groupId },
-    } = args
-    const error = await validateActiveUserHasRoleAndStatus(
-      ctx.prisma,
-      ctx.userId,
-      groupId,
-      "MEMBER",
-      "APPROVED",
-    )
-
-    return error || true
-  },
-)
+import { shield, and, or } from "graphql-shield"
+import {
+  isAuthenticated,
+  isGroupAdmin,
+  isGroupTrader,
+  isMembershipUser,
+  isGroupMember,
+  isMembershipGroupOwner,
+} from "./utils";
 
 export const permissions = shield({
   Query: {
     // Group Queries
+    myGroup: isAuthenticated,
     allGroups: isAuthenticated,
     group: isAuthenticated,
     groupExists: isAuthenticated,
-    membershipRequests: and(isAuthenticated, isGroupAdmin),
+
+    // Platform fee
+    activePlatformFee: isAuthenticated,
 
     // GroupMembership Queries
-    membership: isAuthenticated,
     myMemberships: isAuthenticated,
+    myMembership: and(isAuthenticated, isGroupMember),
+    membershipRequests: and(isAuthenticated, isGroupAdmin),
     groupMembers: and(isAuthenticated, or(isGroupAdmin, isGroupTrader)),
+    membership: and(isAuthenticated, or(isMembershipGroupOwner, isMembershipUser)),
   },
   Mutation: {
     // Group Mutations
     createGroup: isAuthenticated,
+    requestGroupAccess: isAuthenticated,
     renameGroup: and(isAuthenticated, isGroupAdmin),
     disableGroup: and(isAuthenticated, isGroupAdmin),
-    requestGroupAccess: isAuthenticated,
     updateGroupDescription: and(isAuthenticated, or(isGroupAdmin, isGroupTrader)),
 
     // GroupMembership Mutations
+    joinGroup: isAuthenticated,
     createMembership: and(isAuthenticated, isGroupAdmin),
     updateMembershipRole: and(isAuthenticated, isGroupAdmin),
     updateMembershipStatus: and(isAuthenticated, isGroupAdmin),
     updateMembershipActive: and(isAuthenticated, isGroupAdmin),
     deleteMembership: and(isAuthenticated, isGroupAdmin),
+
+    // Group Subscription
+    createGroupSubscription: and(isAuthenticated, isGroupAdmin),
+    updateGroupSubscription: and(isAuthenticated, isGroupAdmin),
+    deleteGroupSubscription: and(isAuthenticated, isGroupAdmin),
+    toggleSubscriptionActive: and(isAuthenticated, isGroupAdmin),
+
+    // Member Subscription
+    payMemberSubscription: and(isAuthenticated, isMembershipUser),
+    switchSubscriptionOption: and(isAuthenticated, isMembershipUser),
+    cancelMemberSubscription: and(isAuthenticated, isMembershipUser),
+    activateMemberSubscription: and(isAuthenticated, isMembershipUser),
   },
 })

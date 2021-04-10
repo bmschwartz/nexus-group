@@ -98,6 +98,15 @@ export const validateMembershipExists = async (
   return membership
 }
 
+export const getMembership = async (
+  prisma: PrismaClient,
+  membershipId: string,
+): Promise<GroupMembership> => {
+  return prisma.groupMembership.findUnique({
+    where: { id: membershipId },
+  })
+}
+
 export const validateActiveUserHasRoleAndStatus = async (
   prisma: PrismaClient,
   memberId: any,
