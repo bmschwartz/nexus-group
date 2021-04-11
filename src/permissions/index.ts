@@ -4,6 +4,7 @@ import { GroupSubscriptionPermissions, GroupSubscriptionMutationPermissions } fr
 import { MemberSubscriptionPermissions, MemberSubscriptionMutationPermissions } from "./memberSubscription"
 import { GroupMembershipQueryPermissions, GroupMembershipPermissions, GroupMembershipMutationPermissions } from "./groupMembership"
 import { SubscriptionInvoiceMutationPermissions, SubscriptionInvoicePermissions } from "./subscriptionInvoice";
+import { PermissionTokenMutationPermissions } from "./permissionToken";
 
 export const permissions = shield({
   Query: {
@@ -13,6 +14,7 @@ export const permissions = shield({
   Mutation: {
     ...GroupMutationPermissions,
     ...GroupMembershipMutationPermissions,
+    ...PermissionTokenMutationPermissions,
     ...GroupSubscriptionMutationPermissions,
     ...MemberSubscriptionMutationPermissions,
     ...SubscriptionInvoiceMutationPermissions,

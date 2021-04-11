@@ -48,6 +48,9 @@ extend type Mutation {
 
   # SubscriptionInvoice
   resetPayment(input: ResetPaymentInput!): ResetPaymentResult
+
+  # permissionToken
+  createPermissionToken(input: CreatePermissionTokenInput!): CreatePermissionTokenResult
 }
 
 ########################
@@ -374,6 +377,17 @@ enum InvoiceStatus {
   COMPLETE
   EXPIRED
   INVALID
+}
+
+########################
+#  PermissionToken
+########################
+input CreatePermissionTokenInput {
+  membershipId: ID!
+}
+
+type CreatePermissionTokenResult {
+  token: String
 }
 
 ########################

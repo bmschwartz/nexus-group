@@ -28,6 +28,7 @@
     "graphql-middleware": "^4.0.2",
     "graphql-shield": "^7.3.3",
     "i": "^0.3.6",
+    "jsonwebtoken": "^8.5.1",
     "node-schedule": "^2.0.0",
     "npm": "^7.5.4",
     "winston": "^3.3.3",
