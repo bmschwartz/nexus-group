@@ -1,5 +1,12 @@
 import * as btcpay from "btcpay"
-import { PrismaClient, GroupSubscription, SubscriptionInvoice, InvoiceStatus, PlatformFee } from "@prisma/client";
+import {
+  PrismaClient,
+  GroupSubscription,
+  GroupMembership,
+  SubscriptionInvoice,
+  InvoiceStatus,
+  PlatformFee,
+} from "@prisma/client";
 
 import { Context } from "../context";
 import { BillingClient } from "../services/billing";
@@ -156,9 +163,9 @@ export async function getSubscriptionDuration(prisma: PrismaClient, invoice: Sub
       where: { id: invoice.subscriptionId },
       include: {
         groupSubscription: {
-          select: { duration: true }
-        }
-      }
+          select: { duration: true },
+        },
+      },
     })
     return memberSubscription.groupSubscription.duration
   } catch (e) {
@@ -219,6 +226,40 @@ export async function updateInvoice(
     where: { id: localInvoice.id },
     data: updateData,
   })
+}
 
+export const groupSubscriptionForInvoice = async (ctx: Context, invoiceId: string): Promise<GroupSubscription> => {
+  try {
+    const invoice = await ctx.prisma.subscriptionInvoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        subscription: {
+          include: {
+            groupSubscription: true,
+          },
+        },
+      },
+    })
+    return invoice.subscription.groupSubscription
+  } catch (e) {
+    logger.error({ message: "[groupSubscriptionForInvoice] Error", userId: ctx.userId, invoiceId, e })
+  }
+}
 
+export const membershipForInvoice = async (ctx: Context, invoiceId: string): Promise<GroupMembership> => {
+  try {
+    const invoice = await ctx.prisma.subscriptionInvoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        subscription: {
+          include: {
+            groupMembership: true,
+          },
+        },
+      },
+    })
+    return invoice.subscription.groupMembership
+  } catch (e) {
+    logger.error({ message: "[membershipForInvoice] Error", userId: ctx.userId, invoiceId, e })
+  }
 }

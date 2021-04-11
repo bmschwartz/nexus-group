@@ -1,5 +1,6 @@
-import { GroupMembership, MembershipRole, Prisma, MembershipStatus } from "@prisma/client";
+import { Group, GroupMembership, MembershipRole, Prisma, MembershipStatus } from "@prisma/client";
 import { Context } from "../context";
+import { logger } from "../logger";
 
 export interface GroupMembersInput {
   groupId: string
@@ -42,5 +43,21 @@ export const getGroupMembers = async (
   return {
     members,
     totalCount,
+  }
+}
+
+export const getMyGroup = async (ctx: Context): Promise<Group> => {
+  try {
+    const membership = await ctx.prisma.groupMembership.findFirst({
+      where: {
+        memberId: ctx.userId,
+        status: MembershipStatus.APPROVED,
+        role: MembershipRole.ADMIN,
+      },
+      include: { group: true },
+    })
+    return membership?.group
+  } catch (e) {
+    logger.error({ message: "[getMyGroup] Error", userId: ctx.userId, e })
   }
 }

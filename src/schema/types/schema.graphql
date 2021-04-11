@@ -41,11 +41,13 @@ extend type Mutation {
   toggleSubscriptionActive(input: ToggleSubscriptionActiveInput!): ToggleSubscriptionActiveResult
 
   # MemberSubscription
-  resetPayment(input: ResetPaymentInput!): ResetPaymentResult
   payMemberSubscription(input: PayMemberSubscriptionInput!): PayMemberSubscriptionResult
   switchSubscriptionOption(input: SwitchSubscriptionOptionInput!): SwitchSubscriptionOptionResult
   cancelMemberSubscription(input: CancelMemberSubscriptionInput!): CancelMemberSubscriptionResult
   activateMemberSubscription(input: ActivateMemberSubscriptionInput!): ActivateMemberSubscriptionResult
+
+  # SubscriptionInvoice
+  resetPayment(input: ResetPaymentInput!): ResetPaymentResult
 }
 
 ########################
