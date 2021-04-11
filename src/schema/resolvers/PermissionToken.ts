@@ -22,7 +22,7 @@ export const PermissionTokenMutations = {
     const { groupId, active, role, status } = groupMembership
 
     const token = jwt.sign(
-      { groupId, active, role, status, membershipId },
+      { groupId, active, role, status, membershipId: groupMembership.id },
       String(process.env.APP_SECRET),
       { expiresIn: "1m" },
     )
