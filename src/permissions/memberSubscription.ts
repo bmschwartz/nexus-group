@@ -1,5 +1,5 @@
 import { and, or, rule } from "graphql-shield";
-import { isAuthenticated, isGroupAdmin, isSubscriptionUser } from "./utils";
+import { isAuthenticated, isGroupAdmin, isMembershipUser, isSubscriptionUser } from "./utils";
 import { Context } from "../context";
 import { groupForMemberSubscription } from "../repository/MemberSubscriptionRepository";
 
@@ -25,9 +25,9 @@ const groupAdminFromParent = rule({ cache: "strict" })(
   },
 )
 
-const subscriptionUserFromMembershipIdArg = rule({ cache: "strict" })(
+const membershipUserFromArgs = rule({ cache: "strict" })(
   async (parent, args, ctx: Context, info) => {
-    return isSubscriptionUser(ctx, args.input.membershipId)
+    return isMembershipUser(args.input.membershipId, args, ctx, info)
   },
 )
 
@@ -36,8 +36,8 @@ export const MemberSubscriptionPermissions = {
 }
 
 export const MemberSubscriptionMutationPermissions = {
+  payMemberSubscription: and(isAuthenticated, membershipUserFromArgs),
+  switchSubscriptionOption: and(isAuthenticated, membershipUserFromArgs),
   cancelMemberSubscription: and(isAuthenticated, subscriptionUserFromArgs),
   activateMemberSubscription: and(isAuthenticated, subscriptionUserFromArgs),
-  payMemberSubscription: and(isAuthenticated, subscriptionUserFromMembershipIdArg),
-  switchSubscriptionOption: and(isAuthenticated, subscriptionUserFromMembershipIdArg),
 }

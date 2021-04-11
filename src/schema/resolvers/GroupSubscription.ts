@@ -4,12 +4,15 @@ import {
   deleteSubscription,
   updateSubscription,
   toggleSubscriptionActive,
-  getSubscriptionMemberCount,
+  getSubscriptionMemberCount, getGroupForSubscription,
 } from "../../repository/GroupSubscriptionRepository";
 
 export const GroupSubscriptionResolvers = {
   async memberCount(subscription: any, args: any, ctx: Context) {
     return getSubscriptionMemberCount(ctx, subscription.id)
+  },
+  async group(subscription: any, args: any, ctx: Context) {
+    return getGroupForSubscription(ctx, subscription.id)
   },
 }
 

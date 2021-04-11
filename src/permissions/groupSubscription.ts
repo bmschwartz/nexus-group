@@ -28,7 +28,8 @@ const subscriptionGroupTrader = rule({ cache: "strict" })(
 )
 
 export const GroupSubscriptionPermissions = {
-  "*": and(isAuthenticated, or(subscriptionGroupAdmin, subscriptionGroupTrader)),
+  "*": isAuthenticated,
+  memberCount: and(isAuthenticated, or(subscriptionGroupAdmin, subscriptionGroupTrader)),
 }
 
 export const GroupSubscriptionMutationPermissions = {

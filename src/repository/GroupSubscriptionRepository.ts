@@ -96,3 +96,15 @@ export async function getSubscriptionMemberCount(ctx: Context, groupSubscription
     where: { groupSubscriptionId },
   })
 }
+
+export const getGroupForSubscription = async (ctx: Context, subscriptionId: string) => {
+  try {
+    const subscription = await ctx.prisma.groupSubscription.findUnique({
+      where: { id: subscriptionId },
+      include: { group: true },
+    })
+    return subscription.group
+  } catch (e) {
+    logger.error({ message: "[getGroupForSubscription] Error", userId: ctx.userId, subscriptionId, e })
+  }
+}
