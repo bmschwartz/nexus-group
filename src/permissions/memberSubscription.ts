@@ -1,26 +1,43 @@
 import { and, or, rule } from "graphql-shield";
-import { isAuthenticated, isGroupAdmin, isMembershipUser } from "./utils";
+import { isAuthenticated, isGroupAdmin, isSubscriptionUser } from "./utils";
 import { Context } from "../context";
+import { groupForMemberSubscription } from "../repository/MemberSubscriptionRepository";
 
-const membershipUser = rule({ cache: "strict" })(
+const subscriptionUserFromParent = rule({ cache: "strict" })(
   async (parent, args, ctx: Context, info) => {
-    return isMembershipUser(args.input.membershipId, args, ctx, info)
+    return isSubscriptionUser(ctx, parent.id)
   },
 )
 
-const groupAdmin = rule({ cache: "strict" })(
+const subscriptionUserFromArgs = rule({ cache: "strict" })(
   async (parent, args, ctx: Context, info) => {
-    return isGroupAdmin(args.input.groupId, args, ctx, info)
+    return isSubscriptionUser(ctx, args.input.subscriptionId)
+  },
+)
+
+const groupAdminFromParent = rule({ cache: "strict" })(
+  async (parent, args, ctx: Context, info) => {
+    const group = await groupForMemberSubscription(ctx, parent.id)
+    if (!group) {
+      return false
+    }
+    return isGroupAdmin(group.id, args, ctx, info)
+  },
+)
+
+const subscriptionUserFromMembershipIdArg = rule({ cache: "strict" })(
+  async (parent, args, ctx: Context, info) => {
+    return isSubscriptionUser(ctx, args.input.membershipId)
   },
 )
 
 export const MemberSubscriptionPermissions = {
-  "*": and(isAuthenticated, or(groupAdmin, membershipUser)),
+  "*": and(isAuthenticated, or(groupAdminFromParent, subscriptionUserFromParent)),
 }
 
 export const MemberSubscriptionMutationPermissions = {
-  payMemberSubscription: and(isAuthenticated, membershipUser),
-  switchSubscriptionOption: and(isAuthenticated, membershipUser),
-  cancelMemberSubscription: and(isAuthenticated, membershipUser),
-  activateMemberSubscription: and(isAuthenticated, membershipUser),
+  cancelMemberSubscription: and(isAuthenticated, subscriptionUserFromArgs),
+  activateMemberSubscription: and(isAuthenticated, subscriptionUserFromArgs),
+  payMemberSubscription: and(isAuthenticated, subscriptionUserFromMembershipIdArg),
+  switchSubscriptionOption: and(isAuthenticated, subscriptionUserFromMembershipIdArg),
 }

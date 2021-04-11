@@ -81,6 +81,12 @@ export const MemberSubscriptionResolvers = {
   },
 
   async invoices(subscription: any, args: any, ctx: Context) {
-    return getSubscriptionInvoices(ctx, subscription.id)
+    const invoices = await getSubscriptionInvoices(ctx, subscription.id)
+    return invoices.map(invoice => ({
+      ...invoice,
+      btcPaid: invoice.btcPaid.toNumber(),
+      btcPrice: invoice.btcPrice.toNumber(),
+      usdPrice: invoice.usdPrice.toNumber(),
+    }))
   },
 }

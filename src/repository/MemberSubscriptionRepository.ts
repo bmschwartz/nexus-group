@@ -1,5 +1,12 @@
+import {
+  PrismaClient,
+  Group,
+  GroupMembership,
+  SubscriptionInvoice,
+  MemberSubscription,
+  InvoiceStatus,
+} from "@prisma/client";
 import { Context } from "../context";
-import { PrismaClient, SubscriptionInvoice, MemberSubscription, InvoiceStatus } from "@prisma/client";
 import { createInvoice } from "./SubscriptionInvoiceRepository";
 import { logger } from "../logger";
 
@@ -60,6 +67,38 @@ export interface UpdateSubscriptionDatesInput {
   subscriptionId: string
   endDate: Date
   startDate?: Date
+}
+
+export const groupForMemberSubscription = async (ctx: Context, memberSubscriptionId: string): Promise<Group> => {
+  try {
+    const subscription = await ctx.prisma.memberSubscription.findUnique({
+      where: { id: memberSubscriptionId },
+      include: {
+        groupSubscription: {
+          include: {
+            group: true,
+          },
+        },
+      },
+    })
+    return subscription.groupSubscription.group
+  } catch (e) {
+    logger.error({ message: "[groupForMemberSubscription] Error", userId: ctx.userId, memberSubscriptionId, e })
+  }
+}
+
+export const membershipForSubscription = async (ctx: Context, memberSubscriptionId: string): Promise<GroupMembership> => {
+  try {
+    const subscription = await ctx.prisma.memberSubscription.findUnique({
+      where: { id: memberSubscriptionId },
+      include: {
+        groupMembership: true,
+      },
+    })
+    return subscription.groupMembership
+  } catch (e) {
+    logger.error({ message: "[membershipForSubscription] Error", userId: ctx.userId, memberSubscriptionId, e })
+  }
 }
 
 export async function payMemberSubscription(

@@ -7,6 +7,8 @@ import {
   getMembership,
   validateActiveUserHasRoleAndStatus,
 } from "../repository/GroupMembershipRepository";
+import { membershipForSubscription } from "../repository/MemberSubscriptionRepository";
+import { membershipForInvoice } from "../repository/SubscriptionInvoiceRepository";
 
 export const isAuthenticated = rule()((parent, args, { userId }) => {
   return !!userId
@@ -84,4 +86,20 @@ export const isGroupMember = async (groupId, args, ctx: Context, info) => {
   )
 
   return error || true
+}
+
+export const isSubscriptionUser = async (ctx: Context, subscriptionId) => {
+  const membership = await membershipForSubscription(ctx, subscriptionId)
+  if (!membership) {
+    return false
+  }
+  return membership.memberId === ctx.userId
+}
+
+export const isSubscriptionInvoiceOwner = async (invoiceId, ctx: Context) => {
+  const groupMembership = await membershipForInvoice(ctx, invoiceId)
+  if (!groupMembership) {
+    return false
+  }
+  return groupMembership.memberId === ctx.userId
 }
